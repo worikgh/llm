@@ -1170,7 +1170,7 @@ fn send_prompt(prompt: String, chats: Rc<RefCell<Chats>>) -> Result<(), JsValue>
     let chat_prompt = ChatPrompt {
         model,
         messages,
-        temperature: 1.0, // Todo: Get this from user interface
+        temperature: 1.0, // TODO: Get this from user interface
         token,
     };
 
@@ -1340,6 +1340,10 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
     options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
         "Gpt-4", "gpt-4",
     )?)?;
+    options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
+        "Gpt-4o Mini", "gpt-4o-mini",
+    )?)?;
+
     side_panel_div.append_child(&select_element)?;
 
     // New conversation button
