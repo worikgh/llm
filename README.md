@@ -57,7 +57,7 @@ Start the web server.  For lighttpd, if configured using a high port, this is as
 
 * Create a file for holding user data: `touch llm-web/llm-web-be/users.txt`
 
-* There needs to be at least one user created.  So enter the back end' directory `llm-web/llm-web-be` and run `cargo run --release  -- add_user <username> <password>`
+* There needs to be at least one user created.  So enter the back end' directory `llm-web/llm-web-be` and run `cargo run  -- add_user <username> <password>`
 
 
 ### Starting 
@@ -111,7 +111,6 @@ When the programme is running, enter prompts at the ">".
 Generally text entered is sent to the LLM.
 
 Text that starts with "! " is a command to the system.  
-
 
 ### List of Meta Commands
 
