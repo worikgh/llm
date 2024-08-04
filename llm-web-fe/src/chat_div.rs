@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc, Duration};
 use crate::filters;
 use crate::filters::text_for_html;
 use crate::llm_webpage::LlmWebPage;
@@ -15,6 +16,8 @@ use crate::set_page::set_status;
 use crate::set_page::update_cost_display;
 use crate::set_page::update_user_display;
 #[allow(unused_imports)]
+use crate::utility::format_with_commas;
+use crate::utility::format_duration;
 use crate::utility::print_to_console;
 use gloo_events::EventListener;
 use llm_web_common::communication::ChatPrompt;
@@ -31,12 +34,17 @@ use std::rc::Rc;
 use web_sys::KeyboardEvent;
 use web_sys::{Event, XmlHttpRequest};
 
+use std::panic;
 use wasm_bindgen::prelude::*;
 use web_sys::{
     window, Document, Element, HtmlButtonElement, HtmlImageElement, HtmlInputElement,
     HtmlOptionElement, HtmlSelectElement, HtmlSpanElement, HtmlTextAreaElement,
 };
 
+fn custom_panic_hook(info: &panic::PanicInfo) {
+    print_to_console(format!("Panic occurred: {}", info));
+    panic!("Panic occurred: {}", info);
+}
 /// Hold the code for creating and manipulating the chat_div
 #[derive(Debug, Deserialize)]
 pub struct ChatDiv;
@@ -44,6 +52,8 @@ pub struct ChatDiv;
 impl LlmWebPage for ChatDiv {
     /// Screen for the `chat` model interface
     fn initialise_page(document: &Document) -> Result<Element, JsValue> {
+        panic::set_hook(Box::new(custom_panic_hook));
+
         // Manage state of the conversations with the LLM
         let chats = Rc::new(RefCell::new(Chats::new()?));
 
@@ -533,6 +543,10 @@ impl Chats {
         // Preconditions:
         // 1. There is a current conversation
         // 2. The `prompt` is not None in current conversation
+        print_to_console(format!(
+            "update_conversation:  Headers?: {}",
+            response.backend_data.is_some()
+        ));
         let conversation = self
             .get_conversation_mut(&conversation_key)
             .ok_or(format!("Failed to get conversation: {conversation_key}").as_str())?;
@@ -758,7 +772,14 @@ fn make_request_cb(
     current_conversation: usize,
 ) {
     let closure = move || -> Result<(), JsValue> {
-        set_status(format!("make_request_cb 1 {}", message.comm_type).as_str());
+        print_to_console(
+            format!(
+                "make_request_cb 1 {}: {}",
+                message.comm_type,
+                message.object.as_str()
+            )
+            .as_str(),
+        );
         match message.comm_type {
             CommType::ChatResponse => {
                 let chat_response: ChatResponse = serde_json::from_str(message.object.as_str())
@@ -1054,7 +1075,6 @@ fn process_chat_response(
     conversation_key: usize,
 ) -> Result<(), JsValue> {
     // print_to_console(format!("process_chat_request 1: {chat_response:?}"));
-
     // Check if conversation has been deleted while the LLM was working
     if !match chats.try_borrow() {
         Ok(chats_ref) => chats_ref.conversation_exists(conversation_key),
@@ -1317,7 +1337,7 @@ fn remake_side_panel(chats: Rc<RefCell<Chats>>) -> Result<(), JsValue> {
 /// Create the side panel
 fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Element, JsValue> {
     // The side_panel menu
-    // print_to_console("make_side_panel 1");
+
     let side_panel_div = document
         .create_element("div")
         .expect("Could not create DIV element");
@@ -1341,7 +1361,8 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
         "Gpt-4", "gpt-4",
     )?)?;
     options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
-        "Gpt-4o Mini", "gpt-4o-mini",
+        "Gpt-4o Mini",
+        "gpt-4o-mini",
     )?)?;
 
     side_panel_div.append_child(&select_element)?;
@@ -1389,15 +1410,132 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
     on_click.forget();
     side_panel_div.append_child(&login_div)?;
 
-    add_css_rule(document, "#side_panel_username_input", "display", "flex")?;
-    add_css_rule(document, "#side_panel_login_div", "display", "flex")?;
-    add_css_rule(
-        document,
-        "#side_panel_login_div",
-        "flex-direction",
-        "column",
-    )?;
-    add_css_rule(document, "#side_panel_login_div", "align-items", "center")?;
+    // Get the latest headers.
+    let headers_div = document.create_element("DIV")?;
+    headers_div.set_id("side_panel_headers_div");
+    let headers_tab = document.create_element("table")?;
+
+    // Header of the table
+    // let headers_header_row = document.create_element("tr")?;
+    // let header_1 = document.create_element("th")?;
+    // header_1.set_inner_html("Header");
+    // let header_2 = document.create_element("th")?;
+    // header_2.set_inner_html("value");
+    // headers_header_row.append_child(&header_1)?;
+    // headers_header_row.append_child(&header_2)?;
+    // headers_tab.append_child(&headers_header_row)?;
+
+    if let Ok(m_chat) = chats.try_borrow() {
+        if let Some(c) = m_chat
+            .conversations
+            .values()
+            .flat_map(|conversations| &conversations.responses)
+            .max_by_key(|chat_resp| {
+                chat_resp
+                    .1
+                    .backend_data
+                    .as_ref()
+                    .expect("Conversation has backend data by now")
+                    .headers
+                    .get("timestamp")
+                    .expect("Conversation's headers have timestamp now")
+                    .parse::<u64>()
+                    .expect("Conversation's header's timestamp is valid u64")
+            })
+        {
+            let newest = c.1.clone();
+	    let newest_ei = newest.backend_data.as_ref().expect("Backend data here");
+            let headers = &newest.backend_data.as_ref().expect("Backend data here").headers;
+            let oai_ms = headers
+                .get("openai-processing-ms")
+                .unwrap_or(&"<undef>".to_string())
+                .parse::<usize>()
+                .unwrap_or(0);
+	    let duration = newest_ei.duration;
+	    
+            // let rl_remain = headers
+            //     .get("x-ratelimit-remaining-requests")
+            //     .unwrap_or(&"<undef>".to_string())
+            //     .parse::<usize>()
+            //     .unwrap_or(0);
+            // let rl_tok = headers
+            //     .get("x-ratelimit-limit-tokens")
+            //     .unwrap_or(&"<undef>".to_string())
+            //     .parse::<usize>()
+            //     .unwrap_or(0);
+            // let rl_tok_rem = headers
+            //     .get("x-ratelimit-remaining-tokens")
+            //     .unwrap_or(&"<undef>".to_string())
+            //     .parse::<usize>()
+            //     .unwrap_or(0);
+            // let rl_req = headers
+            //     .get("x-ratelimit-limit-requests")
+            //     .unwrap_or(&"<undef>".to_string())
+            //     .parse::<usize>()
+            //     .unwrap_or(0);
+             let row_closure = |h: &str, v: &str| -> Result<Element, JsValue> {
+                let row = document.create_element("tr")?;
+                let col1 = document.create_element("td")?;
+                col1.set_inner_html(h);
+                row.append_child(&col1)?;
+                let col2 = document.create_element("td")?;
+                col2.set_inner_html(v);
+                row.append_child(&col2)?;
+                Ok(row)
+            };
+            for h in vec![
+                ("oai_ms", format_with_commas( oai_ms as i64)),
+                // ("rl_remain", rl_remain),
+                // ("rl_tok", rl_tok),
+                // ("rl_tok_rem", rl_tok_rem),
+                // ("rl_req", rl_req),
+            ]
+            .iter()
+            {
+                let e = row_closure(format!("{}", h.0).as_str(), format!("{}", h.1).as_str())?;
+                headers_tab.append_child(&e)?;
+
+                // let row = document.create_element("tr")?;
+                // let col1 = document.create_element("td")?;
+                // col1.set_inner_html(format!("{}", h.0).as_str());
+                // row.append_child(&col1)?;
+                // let col2 = document.create_element("td")?;
+                // col2.set_inner_html(format!("{}", h.1).as_str());
+                // row.append_child(&col2)?;
+                // headers_tab.append_child(&row)?;
+            }
+            // let rl_rst_req = headers
+            //     .get("x-ratelimit-remaining-tokens")
+            //     .unwrap_or(&"<undef>".to_string())
+            //     .clone();
+	    // let e = row_closure("rl_rst_req", rl_rst_req.as_str())?;
+            // headers_tab.append_child(&e)?;
+
+            // let rl_rst_tok = headers
+            //     .get("x-ratelimit-reset-tokens")
+            //     .unwrap_or(&"<undef>".to_string())
+            //     .clone();
+	    // let e = row_closure("rl_rst_tok", rl_rst_tok.as_str())?;
+            // headers_tab.append_child(&e)?;
+	    let e = row_closure("Duration", format!("{}",format_with_commas(duration as  i64)).as_str())?;
+            headers_tab.append_child(&e)?;
+
+	    let s = document
+		.body()
+		.ok_or("send_prompt: Cannot get <body>")?
+		.get_attribute("data.expiry")
+		.ok_or("send_prompt:Cannot get token")?;
+	    let dt = DateTime::parse_from_rfc3339(s.as_str()).expect("Valid rfc3339 time");
+	    let dt = dt.with_timezone(&Utc);
+	    let now = Utc::now();
+	    let delta_t = dt.signed_duration_since(&now);
+	    let e = row_closure("Expire in:", format!("{}", format_duration(delta_t)).as_str())?;
+            headers_tab.append_child(&e)?;
+
+	    headers_div.append_child(&headers_tab)?;
+            side_panel_div.append_child(&headers_div)?;
+        }
+    }
 
     Ok(side_panel_div)
 }

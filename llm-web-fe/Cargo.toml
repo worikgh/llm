@@ -7,6 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
+chrono = {version="0.4.26", features=["serde"]}
 gloo = {version="0.10.0", features=["events"]}
 gloo-events = "0.2"
 js-sys = "0.3"

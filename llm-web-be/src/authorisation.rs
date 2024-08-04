@@ -41,6 +41,7 @@ pub struct LoginResult {
     pub rights: UserRights,
     pub uuid: Uuid,
     pub token: String, // Send this back to user.  It must be sent with every request
+    pub expiry:DateTime<Utc>,
 }
 
 /// Check if a user is authorised with `password`.  If so create an
@@ -75,6 +76,7 @@ pub async fn login(
                     rights: record.level,
                     uuid,
                     token,
+		    expiry,
                 }))
             } else {
                 // Failed login.  Not an error

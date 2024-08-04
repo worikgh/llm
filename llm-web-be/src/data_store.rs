@@ -35,7 +35,6 @@ const FILENAME: &str = "users.txt";
 /// returns a opened, read/write locked file handle.
 /// This is very simple.  
 fn get_locked_handle() -> io::Result<File> {
-    eprintln!("Get locked file");
     let file = match OpenOptions::new()
         .write(true)
         .read(true)
@@ -56,7 +55,6 @@ fn get_locked_handle() -> io::Result<File> {
 pub async fn delete_user(username: &str) -> io::Result<bool> {
     let username = username.to_string();
     tokio::task::spawn_blocking(move || -> io::Result<bool> {
-        eprintln!("Get locked file 1");
         let mut file: File = get_locked_handle()?;
         file.seek(SeekFrom::Start(0))?;
 
@@ -122,7 +120,6 @@ pub async fn add_user(username: &str, password: &str) -> io::Result<bool> {
     };
 
     tokio::task::spawn_blocking(move || -> io::Result<bool> {
-        eprintln!("Get locked file 2");
         let mut file = get_locked_handle()?;
         file.seek(SeekFrom::Start(0))?;
         let lines = BufReader::new(&file).lines();
@@ -162,7 +159,6 @@ pub async fn add_user(username: &str, password: &str) -> io::Result<bool> {
 
 /// Get all the authorisation records for a read only purpose
 pub async fn get_user_records() -> io::Result<Vec<AuthorisationRecord>> {
-    eprintln!("Get locked file 3");
     let mut file: File = get_locked_handle()?;
     let mut s = String::new();
     file.seek(SeekFrom::Start(0))?;
@@ -197,7 +193,6 @@ pub async fn get_user(uuid: Uuid) -> io::Result<AuthorisationRecord> {
 #[allow(unused)]
 pub async fn update_user(uuid: Uuid, credit: f64, level: UserRights) -> io::Result<()> {
     tokio::task::spawn_blocking(move || -> io::Result<()> {
-        eprintln!("Get locked file 4");
         let mut file = get_locked_handle()?;
         let lines = BufReader::new(&file).lines();
         let mut contents = String::new();

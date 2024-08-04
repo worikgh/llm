@@ -17,6 +17,7 @@ use llm_rs::json::Usage;
 use llm_rs::openai_interface;
 use llm_web_common::communication::ChatPrompt;
 use llm_web_common::communication::ChatResponse;
+use llm_web_common::communication::ExtraInfo;
 use llm_web_common::communication::InvalidRequest;
 use llm_web_common::communication::LLMMessage;
 use llm_web_common::communication::LoginResponse;
@@ -31,6 +32,8 @@ use std::error::Error;
 use std::fmt;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::vec::Vec;
 use std::{env, fs, io};
 use uuid::Uuid;
@@ -178,6 +181,7 @@ impl AppBackend {
                             uuid: Some(lr.uuid),
                             token: Some(lr.token),
                             credit,
+			    expire:lr.expiry,
                         }
                     }
                     None => LoginResponse {
@@ -185,6 +189,7 @@ impl AppBackend {
                         uuid: None,
                         token: None,
                         credit: 0.0,
+			expire: Utc::now(),
                     },
                 };
                 Message {
@@ -216,6 +221,7 @@ impl AppBackend {
             };
         }
         let response: ChatResponse = {
+            let start = Instant::now();
             // Forced unwrap OK because comm_type is ChatPrompt
             let prompt: ChatPrompt =
                 serde_json::from_str(&message.object).expect("Should be a ChatPrompt");
@@ -275,11 +281,19 @@ impl AppBackend {
                 }
             };
 
-            let mut result = "".to_string();
-            result = format!("{result}Headers\n");
-            for (k, v) in chat_response.0.iter() {
-                result = format!("{result}{k} => {v}\n");
-            }
+            // Get some data out of the headers.  Going to add a time stamp
+            let mut headers_r: HashMap<String, String> = chat_response.0.clone();
+            let now = SystemTime::now();
+            let timestamp = now
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards")
+                .as_secs();
+            headers_r.insert("timestamp".to_string(), format!("{timestamp}"));
+
+            // let mut result = "".to_string();
+            // for (k, v) in chat_response.0.iter() {
+            //     result = format!("{result}{k} => {v}\n");
+            // }
 
             let cost = Self::cost(chat_response.1.usage, chat_response.1.model.as_str());
 
@@ -313,12 +327,14 @@ impl AppBackend {
                     .credit
             );
             let _ = update_user(uuid, credit, level).await;
-
+            let end = Instant::now();
+            let ms = end.duration_since(start); //:.as_micros();
             ChatResponse {
                 model,
                 cost,
                 response,
                 credit,
+                backend_data: Some(ExtraInfo { headers:headers_r, duration: ms.as_millis() }),
             }
         };
 
@@ -426,12 +442,16 @@ impl AppBackend {
     // Calculate the cost of a OpenAI chat
     /// Convert the usege into a price.
     fn cost(usage: Usage, model: &str) -> f64 {
-        // GPT-4is more expensive
-        if model.starts_with("gpt-4") {
-            usage.completion_tokens as f64 / 1000.0 * 12.0
-                + usage.prompt_tokens as f64 / 1000.0 * 0.06
+        // GPT-4 is more expensive
+        if model.starts_with("gpt-4o") {
+            usage.completion_tokens as f64 * 1500_f64 / 1_000_000_f64
+                + usage.prompt_tokens as f64 * 500_f64 / 1_000_000_f64
+        } else if model.starts_with("gpt-4") {
+            usage.completion_tokens as f64 * 6000_f64 / 1_000_000_f64
+                + usage.prompt_tokens as f64 * 3000_f64 / 1_000_000_f64
         } else if model.starts_with("gpt-3") {
-            usage.total_tokens as f64 / 1000.0 * 0.2
+            usage.completion_tokens as f64 * 600_f64 / 1_000_000_f64
+                + usage.prompt_tokens as f64 * 300_f64 / 1_000_000_f64
         } else {
             panic!("{}", model);
         }

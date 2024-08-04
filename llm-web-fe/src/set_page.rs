@@ -105,6 +105,23 @@ pub fn initialise_page() -> Result<(), JsValue> {
     add_css_rule(&document, "#user_div", "float", "left")?;
     add_css_rule(&document, "#user_div", "background", "#f9f2d1")?;
 
+    add_css_rule(&document, "#side_panel_username_input", "display", "flex")?;
+    add_css_rule(&document, "#side_panel_login_div", "display", "flex")?;
+    add_css_rule(
+        &document,
+        "#side_panel_login_div",
+        "flex-direction",
+        "column",
+    )?;
+    add_css_rule(&document, "#side_panel_login_div", "align-items", "center")?;
+
+    add_css_rule(&document, "#side_panel_headers_div", "display", "inline-block")?;
+    add_css_rule(&document, "#side_panel_headers_div", "background", "#ffffef")?;
+    add_css_rule(&document, "#side_panel_headers_div", "border-radius", "1em")?;
+    add_css_rule(&document, "#side_panel_headers_div", "padding", "1em")?;
+    add_css_rule(&document, "#side_panel_headers_div", "margin", "1em")?;
+    add_css_rule(&document, "#side_panel_headers_div", "font-size", "small")?;
+    add_css_rule(&document, "#side_panel_headers_div", "font-family", "sans-serif")?;
     Ok(())
 }
 

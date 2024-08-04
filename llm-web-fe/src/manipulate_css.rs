@@ -59,7 +59,6 @@ impl fmt::Display for CssRules {
 /// selectors and have a set of (property/value) pairs for each
 /// selector
 pub fn get_css_rules(document: &Document) -> Result<CssRules, JsValue> {
-
     let mut result: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
 
     let style_sheets: StyleSheetList = document.style_sheets();
@@ -79,7 +78,7 @@ pub fn get_css_rules(document: &Document) -> Result<CssRules, JsValue> {
             };
         // Got a CssStyleSheet
         let href = css_style_sheet.href()?.unwrap_or("no title".to_string());
-        if href.contains("google_ads_iframe"){
+        if href.contains("google_ads_iframe") {
             // Wierd rules causing problems.  WHere do these come from?
             continue;
         }
@@ -99,7 +98,6 @@ pub fn get_css_rules(document: &Document) -> Result<CssRules, JsValue> {
 
             let selector = css_style_rule.selector_text();
             let scc_style_dec: CssStyleDeclaration = css_style_rule.style();
-
 
             // Make sure the rules are initialised
             if !result.contains_key(&selector) {
@@ -158,12 +156,10 @@ pub fn add_css_rule<T: Into<String>>(
     let value: String = value.into();
     // Check if the style element already contains CSS rules
 
-
     if let Some(rules) = get_css_rules(document)?.selector_rules.get(selector) {
         // The selector is registered
 
         if let Some(v) = rules.get(property) {
-
             // The property decralred for this rule
             if v == &value {
                 // Rule already there

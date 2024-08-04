@@ -113,7 +113,7 @@ fn login_cb(msg: Message, username: String) {
                 let lr: LoginResponse = serde_json::from_str(msg.object.as_str()).unwrap();
                 let document = get_doc();
                 if lr.success {
-                    // Store token
+                    // Store token and expiry time
                     let token = lr.token.unwrap();
                     set_status(format!("Setting token: {token}").as_str());
 
@@ -121,6 +121,7 @@ fn login_cb(msg: Message, username: String) {
                     head.set_attribute("data.token", token.as_str()).unwrap();
                     head.set_attribute("data.username", username.as_str())
                         .unwrap();
+                    head.set_attribute("data.expiry", lr.expire.to_rfc3339().as_str()).unwrap();
                     set_page(Pages::ChatDiv).unwrap();
                     update_cost_display(&document, lr.credit);
                     update_user_display();
