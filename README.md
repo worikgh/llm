@@ -42,7 +42,7 @@ There are two parts to the software that need to be built separately.
 
 Install a web server.  There is an [example configuration file](lighttpd.config) for  [`lighttpd`](https://www.lighttpd.net/). It uses `env.PWD` to find configuration files, which will work OK when started from the command line like this
 
-Install TLS certificates.  Web Apps will only work with HTTPS so the server that serves the Web App must serve HTTPS, and so it must have certificates.  
+Install TLS certificates.  Web Apps will only work with HTTPS so the server that serves the Web App must serve HTTPS, and so it must have certificates.
 
 There are two approaches to this problem, that both wind up with documents that must be included from the web server configuration file.
 

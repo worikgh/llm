@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc, Duration};
 use crate::filters;
 use crate::filters::text_for_html;
 use crate::llm_webpage::LlmWebPage;
@@ -17,7 +16,6 @@ use crate::set_page::update_cost_display;
 use crate::set_page::update_user_display;
 #[allow(unused_imports)]
 use crate::utility::format_with_commas;
-use crate::utility::format_duration;
 use crate::utility::print_to_console;
 use gloo_events::EventListener;
 use llm_web_common::communication::ChatPrompt;
@@ -526,7 +524,7 @@ impl Chats {
 
     /// Triggered by the radio buttons.  Chage the current conversation
     fn set_current_conversation(&mut self, cc: usize) -> Result<(), JsValue> {
-        if self.conversations.get(&cc).is_some() {
+        if self.conversations.contains_key(&cc) {
             self.current_conversation = Some(cc);
             Ok(())
         } else {
@@ -606,7 +604,7 @@ impl Chats {
 
     /// Check that a conversation exists
     fn conversation_exists(&self, key: usize) -> bool {
-        self.conversations.get(&key).is_some()
+        self.conversations.contains_key(&key)
     }
 
     /// Return 1 + max(keys)
@@ -1473,7 +1471,10 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
             //     .unwrap_or(&"<undef>".to_string())
             //     .parse::<usize>()
             //     .unwrap_or(0);
-             let row_closure = |h: &str, v: &str| -> Result<Element, JsValue> {
+
+	    // Return a TR element with two TD elements containeing
+	    // the passed strings
+            let row_closure = |h: &str, v: &str| -> Result<Element, JsValue> {
                 let row = document.create_element("tr")?;
                 let col1 = document.create_element("td")?;
                 col1.set_inner_html(h);
@@ -1483,16 +1484,10 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
                 row.append_child(&col2)?;
                 Ok(row)
             };
-            for h in vec![
-                ("oai_ms", format_with_commas( oai_ms as i64)),
-                // ("rl_remain", rl_remain),
-                // ("rl_tok", rl_tok),
-                // ("rl_tok_rem", rl_tok_rem),
-                // ("rl_req", rl_req),
-            ]
-            .iter()
-            {
-                let e = row_closure(format!("{}", h.0).as_str(), format!("{}", h.1).as_str())?;
+
+	    {
+		let h  = ("oai_ms", format_with_commas( oai_ms as i64));
+                let e = row_closure(h.0, h.1.as_str())?;
                 headers_tab.append_child(&e)?;
 
                 // let row = document.create_element("tr")?;
@@ -1517,21 +1512,21 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
             //     .clone();
 	    // let e = row_closure("rl_rst_tok", rl_rst_tok.as_str())?;
             // headers_tab.append_child(&e)?;
-	    let e = row_closure("Duration", format!("{}",format_with_commas(duration as  i64)).as_str())?;
+	    let e = row_closure("Duration", format_with_commas(duration as  i64).as_str())?;
             headers_tab.append_child(&e)?;
 
-	    let s = document
-		.body()
-		.ok_or("send_prompt: Cannot get <body>")?
-		.get_attribute("data.expiry")
-		.ok_or("send_prompt:Cannot get token")?;
-	    let dt = DateTime::parse_from_rfc3339(s.as_str()).expect("Valid rfc3339 time");
-	    let dt = dt.with_timezone(&Utc);
-	    let now = Utc::now();
-	    let delta_t = dt.signed_duration_since(&now);
-	    let e = row_closure("Expire in:", format!("{}", format_duration(delta_t)).as_str())?;
-            headers_tab.append_child(&e)?;
-
+	    // let s = document
+	    // 	.body()
+	    // 	.ok_or("send_prompt: Cannot get <body>")?
+	    // 	.get_attribute("data.expiry")
+	    // 	.ok_or("send_prompt:Cannot get token")?;
+	    // let dt = DateTime::parse_from_rfc3339(s.as_str()).expect("Valid rfc3339 time");
+	    // let dt = dt.with_timezone(&Utc);
+	    // let now = Utc::now();
+	    // let delta_t = dt.signed_duration_since(&now);
+	    // let e = row_closure("Expire in:", format!("{}", format_duration(delta_t)).as_str())?;
+            // headers_tab.append_child(&e)?;
+	    // print_to_console("DEBUG: 123!!");
 	    headers_div.append_child(&headers_tab)?;
             side_panel_div.append_child(&headers_div)?;
         }

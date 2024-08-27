@@ -28,7 +28,7 @@ pub fn format_with_commas(n: i64) -> String {
     result
 }
 
-pub fn format_duration(duration: Duration) -> String {
+pub fn _format_duration(duration: Duration) -> String {
     let seconds = duration.num_seconds();
     
     if seconds >= 3 * 60 * 60  {

@@ -1,3 +1,5 @@
+use gloo_timers::callback::{Interval};
+use chrono::{DateTime, Utc};
 use crate::chat_div::ChatDiv;
 use crate::filters::text_for_html;
 use crate::llm_webpage::LlmWebPage;
@@ -8,6 +10,7 @@ use crate::utility::print_to_console;
 use wasm_bindgen::prelude::*;
 use web_sys::{window, HtmlButtonElement};
 use web_sys::{Document, HtmlElement};
+use wasm_bindgen::JsCast;
 
 /// Set up the basic page with header, footer, and body.  Called once
 /// at start of programme
@@ -33,6 +36,12 @@ pub fn initialise_page() -> Result<(), JsValue> {
     let cost_div = document.create_element("div")?;
     cost_div.set_id("cost_div");
     header_div.append_child(&cost_div)?;
+
+    // Add a display of time until session expires
+    let timeout_div = document.create_element("div")?;
+    timeout_div.set_id("timeout_div");
+    timeout_div.set_inner_html("<b>TIMEOUT</b>");
+    header_div.append_child(&timeout_div)?;
 
     // Add a user area to display user
     let user_div = document.create_element("div")?;
@@ -100,6 +109,8 @@ pub fn initialise_page() -> Result<(), JsValue> {
     add_css_rule(&document, "#header", "background", "#f8eaea")?;
     add_css_rule(&document, "#main_body", "border", "1px solid black")?;
 
+    add_css_rule(&document, "#timeout_div", "float", "right")?;
+    add_css_rule(&document, "#timout_div", "background-color", "#f2fbfa")?;
     add_css_rule(&document, "#cost_div", "float", "right")?;
     add_css_rule(&document, "#cost_div", "background-color", "#f2fbfa")?;
     add_css_rule(&document, "#user_div", "float", "left")?;
@@ -122,6 +133,10 @@ pub fn initialise_page() -> Result<(), JsValue> {
     add_css_rule(&document, "#side_panel_headers_div", "margin", "1em")?;
     add_css_rule(&document, "#side_panel_headers_div", "font-size", "small")?;
     add_css_rule(&document, "#side_panel_headers_div", "font-family", "sans-serif")?;
+    print_to_console("set page 1");
+    start_session_timer()?;
+    print_to_console("set page 4");
+    
     Ok(())
 }
 
@@ -189,6 +204,29 @@ pub fn update_cost_display(document: &Document, credit: f64) {
     let cost_div = document.get_element_by_id("cost_div").unwrap();
     let cost_string = format!("Credit: {credit:.2}\u{00A2}");
     cost_div.set_inner_html(cost_string.as_str());
+}
+
+pub fn start_session_timer() -> Result<(), JsValue> {
+    let t = Interval::new(1_000, move || {
+	update_timeout_display().unwrap();
+    });
+    t.forget();
+    Ok(())
+}
+fn update_timeout_display() -> Result<(), JsValue>{
+    let document: Document = get_doc();
+    if let Some(s) = document
+	.body()
+	.ok_or("send_prompt: Cannot get <body>")?
+	.get_attribute("data.expiry"){
+	    let dt = DateTime::parse_from_rfc3339(s.as_str()).expect("Valid rfc3339 time");
+	    let dt = dt.with_timezone(&Utc);
+	    let now = Utc::now();
+	    let delta_t = dt.signed_duration_since(now);
+	    let timeout_div = document.get_element_by_id("timeout_div").ok_or("Failed to get timeout_div")?;
+	    timeout_div.set_inner_html(format!("{delta_t}").as_str());
+	}
+    Ok(())
 }
 
 /// Display logged in user in header

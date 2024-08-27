@@ -67,7 +67,7 @@ pub fn make_request(
 
     // Lastly do the actual network operation
     let message_str = serde_json::to_string(&message).unwrap();
-    xhr.send_with_opt_u8_array(Some(message_str.as_str().as_bytes()))
+    xhr.send_with_opt_u8_array(Some(message_str.as_bytes()))
         .unwrap();
 
     Ok(xhr)

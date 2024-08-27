@@ -99,6 +99,7 @@ pub fn do_login(username: String, password: String) -> Result<XmlHttpRequest, Js
     };
     let login_message = Message::from(login_request);
     let u = username.clone();
+
     make_request(
         login_message,
         move |msg: Message| login_cb(msg, u.clone()),
@@ -116,7 +117,7 @@ fn login_cb(msg: Message, username: String) {
                     // Store token and expiry time
                     let token = lr.token.unwrap();
                     set_status(format!("Setting token: {token}").as_str());
-
+	
                     let head = document.body().unwrap();
                     head.set_attribute("data.token", token.as_str()).unwrap();
                     head.set_attribute("data.username", username.as_str())
