@@ -160,7 +160,7 @@ pub fn add_css_rule<T: Into<String>>(
         // The selector is registered
 
         if let Some(v) = rules.get(property) {
-            // The property decralred for this rule
+            // The property declared for this rule
             if v == &value {
                 // Rule already there
                 return Ok(());

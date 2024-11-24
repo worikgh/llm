@@ -20,7 +20,6 @@ pub fn make_request(
     mut callback_onload: impl FnMut(Message) + 'static,
     callback_onabort: impl FnMut() + 'static,
 ) -> Result<XmlHttpRequest, JsValue> {
-    // print_to_console(format!("make_request 1"));
     let api = match message.comm_type {
         CommType::LoginRequest => "login",
         CommType::ChatPrompt => "chat",

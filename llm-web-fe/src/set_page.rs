@@ -1,5 +1,3 @@
-use gloo_timers::callback::{Interval};
-use chrono::{DateTime, Utc};
 use crate::chat_div::ChatDiv;
 use crate::filters::text_for_html;
 use crate::llm_webpage::LlmWebPage;
@@ -7,10 +5,12 @@ use crate::login_div::LoginDiv;
 use crate::manipulate_css::add_css_rule;
 #[allow(unused_imports)]
 use crate::utility::print_to_console;
+use chrono::{DateTime, Utc};
+use gloo_timers::callback::Interval;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use web_sys::{window, HtmlButtonElement};
 use web_sys::{Document, HtmlElement};
-use wasm_bindgen::JsCast;
 
 /// Set up the basic page with header, footer, and body.  Called once
 /// at start of programme
@@ -126,34 +126,48 @@ pub fn initialise_page() -> Result<(), JsValue> {
     )?;
     add_css_rule(&document, "#side_panel_login_div", "align-items", "center")?;
 
-    add_css_rule(&document, "#side_panel_headers_div", "display", "inline-block")?;
-    add_css_rule(&document, "#side_panel_headers_div", "background", "#ffffef")?;
+    add_css_rule(
+        &document,
+        "#side_panel_headers_div",
+        "display",
+        "inline-block",
+    )?;
+    add_css_rule(
+        &document,
+        "#side_panel_headers_div",
+        "background",
+        "#ffffef",
+    )?;
     add_css_rule(&document, "#side_panel_headers_div", "border-radius", "1em")?;
     add_css_rule(&document, "#side_panel_headers_div", "padding", "1em")?;
     add_css_rule(&document, "#side_panel_headers_div", "margin", "1em")?;
     add_css_rule(&document, "#side_panel_headers_div", "font-size", "small")?;
-    add_css_rule(&document, "#side_panel_headers_div", "font-family", "sans-serif")?;
+    add_css_rule(
+        &document,
+        "#side_panel_headers_div",
+        "font-family",
+        "sans-serif",
+    )?;
     add_css_rule(&document, "#timeout_div", "font-family", "sans-serif")?;
-    add_css_rule(&document, "#timeout_div", "float", "")?;
     add_css_rule(&document, "#timeout_div", "margin-right", "")?;
-    add_css_rule(&document, "#timeout_div", "", "")?;
-    add_css_rule(&document, "#timeout_div", "", "")?;
-// # {
-//   float: right;
-//   margin-right: 2em;
-//   background: aliceblue;
-//   border: .25em solid #e4eaf0;
-//   border-radius: 7pt;
-// }
 
-    print_to_console("set page 1");
+    add_css_rule(&document, "#timeout_div", "", "")?;
+    add_css_rule(&document, "#timeout_div", "", "")?;
+    // # {
+    //   float: right;
+    //   margin-right: 2em;
+    //   background: aliceblue;
+    //   border: .25em solid #e4eaf0;
+    //   border-radius: 7pt;
+    // }
+
     start_session_timer()?;
-    print_to_console("set page 4");
 
     Ok(())
 }
 
 /// The Pages that constitute this web app
+#[derive(Debug)]
 pub enum Pages {
     ChatDiv,
     LoginDiv,
@@ -161,6 +175,7 @@ pub enum Pages {
 /// Change the "main_body" DIV's content
 /// `page` indicates what with
 pub fn set_page(page: Pages) -> Result<(), JsValue> {
+
     // Get the main document
     let document = window()
         .and_then(|win| win.document())
@@ -185,7 +200,6 @@ pub fn set_page(page: Pages) -> Result<(), JsValue> {
 #[allow(dead_code)]
 pub fn set_focus_on_element(element_id: &str) {
     let document: &Document = &get_doc();
-    // print_to_console("set_focus_on_element 1");
     if let Some(element) = document.get_element_by_id(element_id) {
         if let Some(input) = element.dyn_ref::<HtmlElement>() {
             input.focus().unwrap();
@@ -267,7 +281,6 @@ pub fn new_button(
     id: &str,
     display: &str,
 ) -> Result<HtmlButtonElement, JsValue> {
-    // print_to_console("new_button 1");
     let result: HtmlButtonElement = document
         .create_element("button")
         .map_err(|err| format!("Error creating button element: {:?}", err))?
