@@ -59,6 +59,7 @@ pub fn make_request(
     let callback_onabort = Rc::new(RefCell::new(callback_onabort));
 
     let closure_onabort = Closure::wrap(Box::new(move || {
+        print_to_console("Abort  closure");
         (*callback_onabort.borrow_mut())();
     }) as Box<dyn Fn()>);
     xhr.set_onabort(Some(closure_onabort.as_ref().unchecked_ref()));

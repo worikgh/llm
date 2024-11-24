@@ -175,7 +175,6 @@ pub enum Pages {
 /// Change the "main_body" DIV's content
 /// `page` indicates what with
 pub fn set_page(page: Pages) -> Result<(), JsValue> {
-
     // Get the main document
     let document = window()
         .and_then(|win| win.document())

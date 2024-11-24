@@ -1455,8 +1455,8 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
                 .unwrap_or(0);
             let duration = newest_ei.duration;
 
-	    // Headers that are available include:
-	    // x-ratelimit-remaining-requests, x-ratelimit-limit-tokens, x-ratelimit-remaining-tokens, x-ratelimit-limit-requests
+            // Headers that are available include:
+            // x-ratelimit-remaining-requests, x-ratelimit-limit-tokens, x-ratelimit-remaining-tokens, x-ratelimit-limit-requests
 
             // Return a TR element with two TD elements containing
             // the passed strings
