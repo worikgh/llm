@@ -39,6 +39,7 @@ fn get_locked_handle() -> io::Result<File> {
         .write(true)
         .read(true)
         .create(true)
+        .truncate(false)
         .open(FILENAME)
     {
         Ok(f) => f,
