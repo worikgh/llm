@@ -44,13 +44,12 @@ impl MyApp {
 #[wasm_bindgen(start)]
 pub fn run_app() -> Result<(), JsValue> {
     panic::set_hook(Box::new(|info| {
-
-	// Get teh error if a string
-	let value = match info.payload().downcast_ref::<String>() {
+        // Get the error if a string
+        let value = match info.payload().downcast_ref::<String>() {
             Some(v) => v.clone(),
-	    None => "<No info.payload>".to_string(),
-	};
-	if let Some(location) = info.location() {
+            None => "<No info.payload>".to_string(),
+        };
+        if let Some(location) = info.location() {
             print_to_console(format!(
                 "Panic {value} occurred in file '{}' at line {}",
                 location.file(),
