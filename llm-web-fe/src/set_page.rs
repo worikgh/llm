@@ -235,32 +235,39 @@ pub fn update_cost_display(document: &Document, credit: f64) {
 
 pub fn start_session_timer() -> Result<(), JsValue> {
     let t = Interval::new(1_000, move || {
-	update_timeout_display().unwrap();
+        update_timeout_display().unwrap();
     });
     t.forget();
     Ok(())
 }
-fn update_timeout_display() -> Result<(), JsValue>{
+fn update_timeout_display() -> Result<(), JsValue> {
     let document: Document = get_doc();
     if let Some(s) = document
-	.body()
-	.ok_or("send_prompt: Cannot get <body>")?
-	.get_attribute("data.expiry"){
-	    let dt = DateTime::parse_from_rfc3339(s.as_str()).expect("Valid rfc3339 time");
-	    let dt = dt.with_timezone(&Utc);
-	    let now = Utc::now();
-	    let delta_t = dt.signed_duration_since(now);
+        .body()
+        .ok_or("send_prompt: Cannot get <body>")?
+        .get_attribute("data.expiry")
+    {
+        let dt = DateTime::parse_from_rfc3339(s.as_str()).expect("Valid rfc3339 time");
+        let dt = dt.with_timezone(&Utc);
+        let now = Utc::now();
+        let delta_t = dt.signed_duration_since(now);
 
-	    let timeout_div = document.get_element_by_id("timeout_div").ok_or("Failed to get timeout_div")?;
-	    let timeout = if delta_t.num_hours() > 3 {
-		format!("{}h", delta_t.num_hours() + 1)
-	    }else if delta_t.num_hours() > 0 {
-		format!("{}h {}m", delta_t.num_hours(), delta_t.num_minutes() % 60)
-	    }else{
-		format!("{}m {}s", delta_t.num_minutes(), delta_t.num_seconds() % 60)
-	    };
-	    timeout_div.set_inner_html(timeout.as_str());
-	}
+        let timeout_div = document
+            .get_element_by_id("timeout_div")
+            .ok_or("Failed to get timeout_div")?;
+
+        let timeout = format!(
+            "<span id=\"timeout_span\"> Time Remaining: {} </span>",
+            if delta_t.num_hours() > 3 {
+                format!("{}h", delta_t.num_hours() + 1)
+            } else if delta_t.num_hours() > 0 {
+                format!("{}h {}m", delta_t.num_hours(), delta_t.num_minutes() % 60)
+            } else {
+                format!("{}m {}s", delta_t.num_minutes(), delta_t.num_seconds() % 60)
+            }
+        );
+        timeout_div.set_inner_html(timeout.as_str());
+    }
     Ok(())
 }
 
