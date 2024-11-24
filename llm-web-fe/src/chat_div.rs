@@ -633,7 +633,6 @@ impl Drop for Chats {
 /// submitting it
 fn open_multi_line_window_cl(chats: Rc<RefCell<Chats>>) {
     let closure = move || -> Result<(), JsValue> {
-        // print_to_console("open_multi_line_window 1");
         let document = get_doc();
         let multi_line_div = document.create_element("DIV")?;
 
