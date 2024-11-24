@@ -40,7 +40,7 @@ pub fn initialise_page() -> Result<(), JsValue> {
     // Add a display of time until session expires
     let timeout_div = document.create_element("div")?;
     timeout_div.set_id("timeout_div");
-    timeout_div.set_inner_html("<b>TIMEOUT</b>");
+    timeout_div.set_inner_html("<b>&nbsp;</b>");
     header_div.append_child(&timeout_div)?;
 
     // Add a user area to display user
@@ -133,10 +133,23 @@ pub fn initialise_page() -> Result<(), JsValue> {
     add_css_rule(&document, "#side_panel_headers_div", "margin", "1em")?;
     add_css_rule(&document, "#side_panel_headers_div", "font-size", "small")?;
     add_css_rule(&document, "#side_panel_headers_div", "font-family", "sans-serif")?;
+    add_css_rule(&document, "#timeout_div", "font-family", "sans-serif")?;
+    add_css_rule(&document, "#timeout_div", "float", "")?;
+    add_css_rule(&document, "#timeout_div", "margin-right", "")?;
+    add_css_rule(&document, "#timeout_div", "", "")?;
+    add_css_rule(&document, "#timeout_div", "", "")?;
+// # {
+//   float: right;
+//   margin-right: 2em;
+//   background: aliceblue;
+//   border: .25em solid #e4eaf0;
+//   border-radius: 7pt;
+// }
+
     print_to_console("set page 1");
     start_session_timer()?;
     print_to_console("set page 4");
-    
+
     Ok(())
 }
 
@@ -223,8 +236,16 @@ fn update_timeout_display() -> Result<(), JsValue>{
 	    let dt = dt.with_timezone(&Utc);
 	    let now = Utc::now();
 	    let delta_t = dt.signed_duration_since(now);
+
 	    let timeout_div = document.get_element_by_id("timeout_div").ok_or("Failed to get timeout_div")?;
-	    timeout_div.set_inner_html(format!("{delta_t}").as_str());
+	    let timeout = if delta_t.num_hours() > 3 {
+		format!("{}h", delta_t.num_hours() + 1)
+	    }else if delta_t.num_hours() > 0 {
+		format!("{}h {}m", delta_t.num_hours(), delta_t.num_minutes() % 60)
+	    }else{
+		format!("{}m {}s", delta_t.num_minutes(), delta_t.num_seconds() % 60)
+	    };
+	    timeout_div.set_inner_html(timeout.as_str());
 	}
     Ok(())
 }

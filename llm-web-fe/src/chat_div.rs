@@ -1490,43 +1490,9 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
                 let e = row_closure(h.0, h.1.as_str())?;
                 headers_tab.append_child(&e)?;
 
-                // let row = document.create_element("tr")?;
-                // let col1 = document.create_element("td")?;
-                // col1.set_inner_html(format!("{}", h.0).as_str());
-                // row.append_child(&col1)?;
-                // let col2 = document.create_element("td")?;
-                // col2.set_inner_html(format!("{}", h.1).as_str());
-                // row.append_child(&col2)?;
-                // headers_tab.append_child(&row)?;
             }
-            // let rl_rst_req = headers
-            //     .get("x-ratelimit-remaining-tokens")
-            //     .unwrap_or(&"<undef>".to_string())
-            //     .clone();
-	    // let e = row_closure("rl_rst_req", rl_rst_req.as_str())?;
-            // headers_tab.append_child(&e)?;
-
-            // let rl_rst_tok = headers
-            //     .get("x-ratelimit-reset-tokens")
-            //     .unwrap_or(&"<undef>".to_string())
-            //     .clone();
-	    // let e = row_closure("rl_rst_tok", rl_rst_tok.as_str())?;
-            // headers_tab.append_child(&e)?;
 	    let e = row_closure("Duration", format_with_commas(duration as  i64).as_str())?;
             headers_tab.append_child(&e)?;
-
-	    // let s = document
-	    // 	.body()
-	    // 	.ok_or("send_prompt: Cannot get <body>")?
-	    // 	.get_attribute("data.expiry")
-	    // 	.ok_or("send_prompt:Cannot get token")?;
-	    // let dt = DateTime::parse_from_rfc3339(s.as_str()).expect("Valid rfc3339 time");
-	    // let dt = dt.with_timezone(&Utc);
-	    // let now = Utc::now();
-	    // let delta_t = dt.signed_duration_since(&now);
-	    // let e = row_closure("Expire in:", format!("{}", format_duration(delta_t)).as_str())?;
-            // headers_tab.append_child(&e)?;
-	    // print_to_console("DEBUG: 123!!");
 	    headers_div.append_child(&headers_tab)?;
             side_panel_div.append_child(&headers_div)?;
         }
