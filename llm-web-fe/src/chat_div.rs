@@ -39,10 +39,6 @@ use web_sys::{
     HtmlOptionElement, HtmlSelectElement, HtmlSpanElement, HtmlTextAreaElement,
 };
 
-fn custom_panic_hook(info: &panic::PanicInfo) {
-    print_to_console(format!("Panic occurred: {}", info));
-    panic!("Panic occurred: {}", info);
-}
 /// Hold the code for creating and manipulating the chat_div
 #[derive(Debug, Deserialize)]
 pub struct ChatDiv;
@@ -50,8 +46,6 @@ pub struct ChatDiv;
 impl LlmWebPage for ChatDiv {
     /// Screen for the `chat` model interface
     fn initialise_page(document: &Document) -> Result<Element, JsValue> {
-        panic::set_hook(Box::new(custom_panic_hook));
-
         // Manage state of the conversations with the LLM
         let chats = Rc::new(RefCell::new(Chats::new()?));
 

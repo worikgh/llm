@@ -4,6 +4,7 @@ use crate::utility::print_to_console;
 use set_page::initialise_page;
 use set_page::set_page;
 use set_page::Pages;
+use std::panic;
 use wasm_bindgen::prelude::*;
 mod chat_div;
 mod cost_div;
@@ -42,6 +43,24 @@ impl MyApp {
 
 #[wasm_bindgen(start)]
 pub fn run_app() -> Result<(), JsValue> {
+    panic::set_hook(Box::new(|info| {
+
+	// Get teh error if a string
+	let value = match info.payload().downcast_ref::<String>() {
+            Some(v) => v.clone(),
+	    None => "<No info.payload>".to_string(),
+	};
+	if let Some(location) = info.location() {
+            print_to_console(format!(
+                "Panic {value} occurred in file '{}' at line {}",
+                location.file(),
+                location.line(),
+            ));
+        } else {
+            print_to_console("Panic occurred but can't get location information...");
+        }
+        std::process::exit(1);
+    }));
     let mut app = MyApp::new();
     app.initialise_page()?;
     app.start_app()?;
