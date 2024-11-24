@@ -1435,38 +1435,24 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
             })
         {
             let newest = c.1.clone();
-	    let newest_ei = newest.backend_data.as_ref().expect("Backend data here");
-            let headers = &newest.backend_data.as_ref().expect("Backend data here").headers;
+            let newest_ei = newest.backend_data.as_ref().expect("Backend data here");
+            let headers = &newest
+                .backend_data
+                .as_ref()
+                .expect("Backend data here")
+                .headers;
             let oai_ms = headers
                 .get("openai-processing-ms")
                 .unwrap_or(&"<undef>".to_string())
                 .parse::<usize>()
                 .unwrap_or(0);
-	    let duration = newest_ei.duration;
-	    
-            // let rl_remain = headers
-            //     .get("x-ratelimit-remaining-requests")
-            //     .unwrap_or(&"<undef>".to_string())
-            //     .parse::<usize>()
-            //     .unwrap_or(0);
-            // let rl_tok = headers
-            //     .get("x-ratelimit-limit-tokens")
-            //     .unwrap_or(&"<undef>".to_string())
-            //     .parse::<usize>()
-            //     .unwrap_or(0);
-            // let rl_tok_rem = headers
-            //     .get("x-ratelimit-remaining-tokens")
-            //     .unwrap_or(&"<undef>".to_string())
-            //     .parse::<usize>()
-            //     .unwrap_or(0);
-            // let rl_req = headers
-            //     .get("x-ratelimit-limit-requests")
-            //     .unwrap_or(&"<undef>".to_string())
-            //     .parse::<usize>()
-            //     .unwrap_or(0);
+            let duration = newest_ei.duration;
 
-	    // Return a TR element with two TD elements containeing
-	    // the passed strings
+	    // Headers that are available include:
+	    // x-ratelimit-remaining-requests, x-ratelimit-limit-tokens, x-ratelimit-remaining-tokens, x-ratelimit-limit-requests
+
+            // Return a TR element with two TD elements containing
+            // the passed strings
             let row_closure = |h: &str, v: &str| -> Result<Element, JsValue> {
                 let row = document.create_element("tr")?;
                 let col1 = document.create_element("td")?;
@@ -1478,15 +1464,14 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
                 Ok(row)
             };
 
-	    {
-		let h  = ("oai_ms", format_with_commas( oai_ms as i64));
+            {
+                let h = ("oai_ms", format_with_commas(oai_ms as i64));
                 let e = row_closure(h.0, h.1.as_str())?;
                 headers_tab.append_child(&e)?;
-
             }
-	    let e = row_closure("Duration", format_with_commas(duration as  i64).as_str())?;
+            let e = row_closure("Duration", format_with_commas(duration as i64).as_str())?;
             headers_tab.append_child(&e)?;
-	    headers_div.append_child(&headers_tab)?;
+            headers_div.append_child(&headers_tab)?;
             side_panel_div.append_child(&headers_div)?;
         }
     }
