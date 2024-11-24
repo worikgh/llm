@@ -38,7 +38,7 @@ pub async fn users() -> io::Result<Vec<AuthorisationRecord>> {
 /// Returned to caller on successful login
 #[derive(Debug)]
 pub struct LoginResult {
-    pub rights: UserRights,
+    //pub rights: UserRights,
     pub uuid: Uuid,
     pub token: String, // Send this back to user.  It must be sent with every request
     pub expiry:DateTime<Utc>,
@@ -73,7 +73,7 @@ pub async fn login(
                     Session::new(record.uuid, expiry, token.clone(), record.credit, level),
                 );
                 Ok(Some(LoginResult {
-                    rights: record.level,
+                    //rights: record.level,
                     uuid,
                     token,
 		    expiry,
