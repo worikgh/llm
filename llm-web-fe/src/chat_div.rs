@@ -1355,6 +1355,13 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
         "Gpt-4o Mini",
         "gpt-4o-mini",
     )?)?;
+    options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
+        "O1-Preview",
+        "o1-preview",
+    )?)?;
+    options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
+        "O1-Mini", "o1-mini",
+    )?)?;
 
     side_panel_div.append_child(&select_element)?;
 
