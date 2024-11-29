@@ -29,6 +29,7 @@ use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use web_sys::HtmlCollection;
 use web_sys::KeyboardEvent;
 use web_sys::{Event, XmlHttpRequest};
 
@@ -36,7 +37,7 @@ use std::panic;
 use wasm_bindgen::prelude::*;
 use web_sys::{
     window, Document, Element, HtmlButtonElement, HtmlImageElement, HtmlInputElement,
-    HtmlOptionElement, HtmlSelectElement, HtmlSpanElement, HtmlTextAreaElement,
+    HtmlLabelElement, HtmlSpanElement, HtmlTextAreaElement,
 };
 
 /// Hold the code for creating and manipulating the chat_div
@@ -121,6 +122,7 @@ impl LlmWebPage for ChatDiv {
         prompt_div.append_child(&multi_line_button)?;
 
         let side_panel_div = make_side_panel(document, chats.clone())?;
+        set_selected_model("gpt-4o-mini", &side_panel_div)?;
 
         // Put the page together
         chat_div.append_child(&conversation_div)?;
@@ -174,6 +176,20 @@ impl LlmWebPage for ChatDiv {
 
         // // Inject the style into the DOM.
         // clear_css(document)?;
+
+        add_css_rule(document, "#model_selection_tool", "display", "flex")?;
+        add_css_rule(
+            document,
+            "#model_selection_tool",
+            "flex-direction",
+            "column",
+        )?;
+        add_css_rule(
+            document,
+            "#model_selection_tool input[type=radio]",
+            "margin-bottom",
+            "10px",
+        )?;
 
         add_css_rule(document, "#multi_line_div", "grid-row", "1 / span 100")?;
         add_css_rule(document, "#multi_line_div", "grid-column", "41 / span 120")?;
@@ -336,7 +352,7 @@ impl LlmWebPage for ChatDiv {
 
 /// A conversation.  If `prompt` is not `None` a chat prompt has been
 /// sent and a reply is being waited for.  Keeps a record of all
-/// responses received in `responses`.  
+/// responses received in `responses`.
 #[derive(Debug, Deserialize, Serialize)]
 struct Conversation {
     // This, `cost`, does not need to be stored here.  It depends on the
@@ -1169,7 +1185,7 @@ fn send_prompt(prompt: String, chats: Rc<RefCell<Chats>>) -> Result<(), JsValue>
     // The history or the chat so far, plus latest prompt
     let messages: Vec<LLMMessage> = build_messages(chats.clone(), prompt.clone());
     // The model to use
-    let model = get_model();
+    let model = get_model().unwrap();
 
     // Get the token
     let token = document
@@ -1321,8 +1337,93 @@ fn remake_side_panel(chats: Rc<RefCell<Chats>>) -> Result<(), JsValue> {
     parent.replace_child(&new_side_panel_div, &old_side_panel)?;
 
     // Reset the data that may have changed from the defaults
-    set_model(model.as_str());
+    set_model(model.unwrap().as_str())?;
     Ok(())
+}
+
+/// The widget to select which model to use.
+fn make_model_selection_tool(document: &Document) -> Result<Element, JsValue> {
+    let result = document
+        .create_element("div")
+        .expect("Cound not create model selection tool div");
+    result.set_id("model_selection_tool");
+    let select_element: HtmlInputElement = document
+        .create_element("input")
+        .map_err(|err| format!("Error creating button element: {:?}", err))?
+        .dyn_into::<HtmlInputElement>()
+        .map_err(|err| format!("Error casting to HtmlImageElement: {:?}", err))?;
+    select_element.set_id("model_chat");
+    let models = [
+        "gpt-3.5-turbo",
+        "gpt-4",
+        "gpt-4o-mini",
+        "o1-preview",
+        "o1-mini",
+    ];
+    let names = ["Gpt-3", "Gpt-4", "Gpt-4 Mini", "o1-preview", "o1-mini"];
+    let options = models
+        .iter()
+        .zip(names.iter())
+        .map(|(m, n)| {
+            let element = document
+                .create_element("input")
+                .expect("Create model <input>");
+            let input: HtmlInputElement =
+                element.dyn_into().expect("Cast to HtmlInputElement failed");
+            input.set_type("radio"); //.expect("Set model <input> type");
+            input.set_class_name("model_input");
+            input.set_name("model");
+            input.set_value(m);
+            let label: HtmlLabelElement = document
+                .create_element("label")
+                .expect("Create model <label>")
+                .dyn_into()
+                .expect("Cast to HtmlLabelElement failed");
+            label.set_inner_html(n);
+            let s: HtmlSpanElement = document
+                .create_element("span")
+                .expect("Create model <span>")
+                .dyn_into()
+                .expect("Cast to HtmlSpanElement failed");
+            s.append_child(&input).unwrap();
+            s.append_child(&label).unwrap();
+            s
+        })
+        .collect::<Vec<HtmlSpanElement>>();
+    print_to_console(format!("options: {options:?}"));
+    for o in options.iter() {
+        print_to_console(format!("o: {o:?}"));
+        result.append_child(o)?;
+    }
+    Ok(result)
+}
+
+fn set_selected_model(model: &str, model_selection_tool: &Element) -> Result<(), JsValue> {
+    let elements: HtmlCollection = model_selection_tool.get_elements_by_class_name("model_input");
+    for i in 0..elements.length() {
+        let inp: HtmlInputElement = elements.item(i).unwrap().dyn_into()?;
+        print_to_console(format!("input value: {} cmp: {model}", inp.value()));
+        if inp.value().as_str() == model {
+            inp.set_checked(true);
+        } else {
+            inp.set_checked(false);
+        }
+    }
+    Ok(())
+}
+
+/// Return the model selected by the user
+/// Panic if no model selected
+fn get_selected_model(document: &Document) -> Result<String, JsValue> {
+    let elements: HtmlCollection = document.get_elements_by_class_name("model_input"); //.iter().filter(|x| x.
+    for i in 0..elements.length() {
+        let inp: HtmlInputElement = elements.item(i).unwrap().dyn_into()?;
+        if inp.checked() {
+            let v = inp.value().clone();
+            return Ok(v);
+        }
+    }
+    panic!("No model selected");
 }
 
 /// Create the side panel
@@ -1335,34 +1436,7 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
     side_panel_div.set_id("side-panel-div");
 
     // Create the model selection tool
-    let select_element = document
-        .create_element("select")
-        .unwrap()
-        .dyn_into::<HtmlSelectElement>()
-        .unwrap();
-    select_element.set_id("model_chat");
-    let options = select_element.options();
-
-    options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
-        "Gpt-3",
-        "gpt-3.5-turbo",
-    )?)?;
-
-    options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
-        "Gpt-4", "gpt-4",
-    )?)?;
-    options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
-        "Gpt-4o Mini",
-        "gpt-4o-mini",
-    )?)?;
-    options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
-        "O1-Preview",
-        "o1-preview",
-    )?)?;
-    options.add_with_html_option_element(&HtmlOptionElement::new_with_text_and_value(
-        "O1-Mini", "o1-mini",
-    )?)?;
-
+    let select_element = make_model_selection_tool(document)?;
     side_panel_div.append_child(&select_element)?;
 
     // New conversation button
@@ -1570,7 +1644,7 @@ fn make_conversation_list(
             .create_element("img")
             .map_err(|err| format!("Error creating button element: {:?}", err))?
             .dyn_into::<HtmlImageElement>()
-            .map_err(|err| format!("Error casting to HtmlButtonElement: {:?}", err))?;
+            .map_err(|err| format!("Error casting to HtmlImageElement: {:?}", err))?;
 
         delete_button.set_src("data/trash.png");
         delete_button.set_id(format!("delete_conversation_{key}").as_str());
@@ -1709,7 +1783,7 @@ fn build_messages(chats: Rc<RefCell<Chats>>, prompt: String) -> Vec<LLMMessage> 
 }
 
 /// Get the model that the user has selected from the side panel
-fn get_model() -> String {
+fn get_model() -> Result<String, JsValue> {
     // Worik: I am having a debate with myself: Should the `document`
     // be passed around or should it be grabbed from the global
     // environment each time?
@@ -1726,44 +1800,15 @@ fn get_model() -> String {
     let document = window()
         .and_then(|win| win.document())
         .expect("Failed to get document");
-    // Get the model
-    let model_selection: HtmlSelectElement = document
-        .get_element_by_id("model_chat")
-        .unwrap()
-        .dyn_into::<HtmlSelectElement>()
-        .map_err(|err| format!("Error casting to HtmlOptionsCollection: {err:?}",))
-        .unwrap();
-    let model: String = if let Some(element) = model_selection.selected_options().item(0) {
-        element.get_attribute("value").unwrap()
-    } else {
-        // This should never happen.  There is a default and no way to
-        // select no model.
-        print_to_console("Cannot get a model from the side panel");
-        panic!()
-    };
-    model
+    let model: String = get_selected_model(&document).unwrap();
+    Ok(model)
 }
 
 /// Set the model displayed in the side panel
-fn set_model(new_model: &str) {
+fn set_model(new_model: &str) -> Result<(), JsValue> {
     let document = window()
         .and_then(|win| win.document())
         .expect("Failed to get document");
-    // Get the model
-    let model_selection: HtmlSelectElement = document
-        .get_element_by_id("model_chat")
-        .unwrap()
-        .dyn_into::<HtmlSelectElement>()
-        .map_err(|err| format!("Error casting to HtmlOptionsCollection: {err:?}",))
-        .unwrap();
-    for i in 0..model_selection.length() {
-        // Forced unwrap is guarded by loop
-        let e = model_selection.get(i).unwrap();
-        if e.get_attribute("value").unwrap() == new_model {
-            model_selection.set_selected_index(i as i32);
-            return;
-        }
-    }
-    // Get to here and there has been an error.
-    print_to_console(format!("set_model({new_model}) failed"));
+    let model_selection_tool = document.get_element_by_id("model_selection_tool").unwrap();
+    set_selected_model(new_model, &model_selection_tool)
 }

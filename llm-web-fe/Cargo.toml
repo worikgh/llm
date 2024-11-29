@@ -33,6 +33,7 @@ features = [
 'HtmlElement',
 'HtmlImageElement',
 'HtmlInputElement',
+'HtmlLabelElement',
 'HtmlLinkElement',
 'HtmlOptionElement',
 'HtmlOptionsCollection',

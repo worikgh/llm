@@ -149,17 +149,6 @@ pub fn initialise_page() -> Result<(), JsValue> {
         "sans-serif",
     )?;
     add_css_rule(&document, "#timeout_div", "font-family", "sans-serif")?;
-    add_css_rule(&document, "#timeout_div", "margin-right", "")?;
-
-    add_css_rule(&document, "#timeout_div", "", "")?;
-    add_css_rule(&document, "#timeout_div", "", "")?;
-    // # {
-    //   float: right;
-    //   margin-right: 2em;
-    //   background: aliceblue;
-    //   border: .25em solid #e4eaf0;
-    //   border-radius: 7pt;
-    // }
 
     start_session_timer()?;
 
