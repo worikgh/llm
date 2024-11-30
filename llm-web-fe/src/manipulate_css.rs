@@ -29,6 +29,7 @@ pub struct CssRules {
 }
 
 impl CssRules {
+    #[allow(dead_code)]
     pub fn insert(&mut self, selector: &str, rule: &str, value: &str) -> Result<(), JsValue> {
         if !self.selector_rules.contains_key(selector) {
             self.selector_rules
@@ -58,6 +59,7 @@ impl fmt::Display for CssRules {
 /// Read the style sheets from the Document and collect all the
 /// selectors and have a set of (property/value) pairs for each
 /// selector
+#[allow(dead_code)]
 pub fn get_css_rules(document: &Document) -> Result<CssRules, JsValue> {
     let mut result: BTreeMap<String, BTreeMap<String, String>> = BTreeMap::new();
 
@@ -128,6 +130,7 @@ pub fn get_css_rules(document: &Document) -> Result<CssRules, JsValue> {
 }
 
 /// Add in the rules in the passed container
+#[allow(dead_code)]
 pub fn set_css_rules(document: &Document, css_rules: &CssRules) -> Result<(), JsValue> {
     let style_sheets: StyleSheetList = document.style_sheets();
     let lim_i = style_sheets.length();

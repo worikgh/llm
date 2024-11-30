@@ -5,9 +5,6 @@ use crate::login_div::do_login;
 use crate::login_div::username_password_elements;
 use crate::make_request::make_request;
 use crate::manipulate_css::add_css_rule;
-use crate::manipulate_css::clear_css;
-use crate::manipulate_css::get_css_rules;
-use crate::manipulate_css::set_css_rules;
 use crate::set_page::get_doc;
 use crate::set_page::new_button;
 use crate::set_page::set_focus_on_element;
@@ -900,26 +897,6 @@ fn new_conversation_cb(chats: Rc<RefCell<Chats>>) {
     }
 }
 
-/// Style experiment button
-fn style_experiment_cb() {
-    let document = window()
-        .and_then(|win| win.document())
-        .expect("Failed to get document");
-    let mut cs_rules = get_css_rules(&document).unwrap();
-    cs_rules
-        .insert("#side-panel-div", "background-color", "aliceblue")
-        .unwrap();
-    match clear_css(&document) {
-        Ok(()) => (),
-        Err(err) => print_to_console(format!(
-            "Failed clear_css {}:{}",
-            err.as_string().unwrap_or("<UNKNOWN>".to_string()),
-            err.js_typeof().as_string().unwrap_or("".to_string()),
-        )),
-    };
-    set_css_rules(&document, &cs_rules).unwrap();
-}
-
 /// Calcel button callback
 fn cancel_cb(event: &Event, chats: Rc<RefCell<Chats>>) {
     let closure = move || -> Result<(), JsValue> {
@@ -1450,15 +1427,6 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
     new_conversation_closure.forget();
 
     side_panel_div.append_child(&new_conversation)?;
-    // Experimental button
-    let clear_style = new_button(document, "clear_style", "Style Experiment")?;
-    let resp_closure = Closure::wrap(Box::new(|| {
-        style_experiment_cb();
-    }) as Box<dyn Fn()>);
-
-    clear_style.set_onclick(Some(resp_closure.as_ref().unchecked_ref()));
-    resp_closure.forget();
-    side_panel_div.append_child(&clear_style)?;
 
     let conversation_list = make_conversation_list(document, chats.clone())?;
     side_panel_div.append_child(&conversation_list)?;
