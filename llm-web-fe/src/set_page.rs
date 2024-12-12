@@ -2,7 +2,7 @@ use crate::chat_div::ChatDiv;
 use crate::filters::text_for_html;
 use crate::llm_webpage::LlmWebPage;
 use crate::login_div::LoginDiv;
-use crate::manipulate_css::add_css_rule;
+use crate::manipulate_css::add_css_rules;
 #[allow(unused_imports)]
 use crate::utility::print_to_console;
 use chrono::{DateTime, Utc};
@@ -62,93 +62,114 @@ pub fn initialise_page() -> Result<(), JsValue> {
     let header_height = 10;
     let main_body_height = 100 - (footer_height + header_height);
     let main_width = 100;
-    add_css_rule(&document, "html, body", "height", "100%")?;
-    add_css_rule(&document, "html, body", "margin", "0")?;
-    add_css_rule(&document, "html, body", "padding", "0")?;
-    add_css_rule(&document, "#header", "height", format!("{header_height}%"))?;
-    add_css_rule(&document, "#header", "width", format!("{main_width}%"))?;
-    add_css_rule(&document, "#header", "position", "fixed")?;
-    add_css_rule(&document, "#header", "top", "0")?;
-    add_css_rule(&document, "#header", "left", "0")?;
-    add_css_rule(&document, "#sidepanel", "height", "100%")?;
-    add_css_rule(&document, "#sidepanel", "width", "0%")?;
-    add_css_rule(&document, "#sidepanel", "position", "fixed")?;
-    add_css_rule(&document, "#sidepanel", "top", "0")?;
-    add_css_rule(&document, "#sidepanel", "left", "0")?;
-    add_css_rule(&document, "#footer", "height", format!("{footer_height}%"))?;
-    add_css_rule(&document, "#footer", "width", format!("{main_width}%"))?;
-    add_css_rule(&document, "#footer", "position", "fixed")?;
-    add_css_rule(
+    add_css_rules(
+        &document,
+        "html, body",
+        &[("height", "100%"), ("margin", "0"), ("padding", "0")],
+    )?;
+    add_css_rules(
+        &document,
+        "#header",
+        &[
+            ("height", format!("{header_height}%").as_str()),
+            ("width", format!("{main_width}%").as_str()),
+            ("position", "fixed"),
+            ("top", "0"),
+            ("left", "0"),
+        ],
+    )?;
+    add_css_rules(
+        &document,
+        "#sidepanel",
+        &[
+            ("height", "100%"),
+            ("width", "0%"),
+            ("position", "fixed"),
+            ("top", "0"),
+            ("left", "0"),
+        ],
+    )?;
+    add_css_rules(
         &document,
         "#footer",
-        "top",
-        format!("{}%", 100 - footer_height),
+        &[
+            ("height", format!("{footer_height}%").as_str()),
+            ("top", format!("{}%", 100 - footer_height).as_str()),
+            ("width", format!("{main_width}%").as_str()),
+            ("position", "fixed"),
+            ("left", "0%"),
+        ],
     )?;
-    add_css_rule(&document, "#footer", "left", "0%")?;
 
-    add_css_rule(
+    add_css_rules(
         &document,
         "#main_body",
-        "height",
-        format!("{main_body_height}%"),
+        &[
+            ("height", format!("{main_body_height}%").as_str()),
+            ("width", format!("{main_width}%").as_str()),
+            ("position", "fixed"),
+            ("top", format!("{header_height}%").as_str()),
+            ("border", "1px solid black"),
+            ("left", "0%"),
+            ("bottom", format!("{}%", 100 - footer_height).as_str()),
+        ],
     )?;
-    add_css_rule(&document, "#main_body", "width", format!("{main_width}%"))?;
-    add_css_rule(&document, "#main_body", "position", "fixed")?;
-    add_css_rule(&document, "#main_body", "top", format!("{header_height}%"))?;
-    add_css_rule(&document, "#main_body", "left", "0%")?;
-    add_css_rule(
+
+    add_css_rules(
         &document,
-        "#main_body",
-        "bottom",
-        format!("{}%", 100 - footer_height),
+        "#cost_div",
+        &[("background-color", "#f2fbfa"), ("float", "right")],
     )?;
-    add_css_rule(&document, "#sidepanel", "border", "1px solid black")?;
-    add_css_rule(&document, "#footer", "border", "1px solid black")?;
-
-    add_css_rule(&document, "#header", "border", "1px solid black")?;
-    add_css_rule(&document, "#header", "background", "#f8eaea")?;
-    add_css_rule(&document, "#main_body", "border", "1px solid black")?;
-
-    add_css_rule(&document, "#timeout_div", "float", "right")?;
-    add_css_rule(&document, "#timout_div", "background-color", "#f2fbfa")?;
-    add_css_rule(&document, "#cost_div", "float", "right")?;
-    add_css_rule(&document, "#cost_div", "background-color", "#f2fbfa")?;
-    add_css_rule(&document, "#user_div", "float", "left")?;
-    add_css_rule(&document, "#user_div", "background", "#f9f2d1")?;
-
-    add_css_rule(&document, "#side_panel_username_input", "display", "flex")?;
-    add_css_rule(&document, "#side_panel_login_div", "display", "flex")?;
-    add_css_rule(
+    add_css_rules(&document, "#footer", &[("border", "1px solid black")])?;
+    add_css_rules(
         &document,
-        "#side_panel_login_div",
-        "flex-direction",
-        "column",
+        "#header",
+        &[("background", "#f8eaea"), ("border", "1px solid black")],
     )?;
-    add_css_rule(&document, "#side_panel_login_div", "align-items", "center")?;
-
-    add_css_rule(
+    add_css_rules(
         &document,
         "#side_panel_headers_div",
-        "display",
-        "inline-block",
+        &[
+            ("border-radius", "1em"),
+            ("font-size", "small"),
+            ("margin", "1em"),
+            ("padding", "1em"),
+        ],
     )?;
-    add_css_rule(
+    add_css_rules(
         &document,
         "#side_panel_headers_div",
-        "background",
-        "#ffffef",
+        &[
+            ("display", "inline-block"),
+            ("flex-direction", "column"),
+            ("align-items", "center"),
+            // ("display", "flex"),
+        ],
     )?;
-    add_css_rule(&document, "#side_panel_headers_div", "border-radius", "1em")?;
-    add_css_rule(&document, "#side_panel_headers_div", "padding", "1em")?;
-    add_css_rule(&document, "#side_panel_headers_div", "margin", "1em")?;
-    add_css_rule(&document, "#side_panel_headers_div", "font-size", "small")?;
-    add_css_rule(
+    add_css_rules(
+        &document,
+        "#side_panel_username_input",
+        &[("display", "flex"), ("border", "1px solid black")],
+    )?;
+    add_css_rules(
+        &document,
+        "#timeout_div",
+        &[
+            ("float", "right"),
+            ("font-family", "sans-serif"),
+            ("background-color", "#f2fbfa"),
+        ],
+    )?;
+    add_css_rules(
+        &document,
+        "#user_div",
+        &[("background", "#f9f2d1"), ("float", "left")],
+    )?;
+    add_css_rules(
         &document,
         "#side_panel_headers_div",
-        "font-family",
-        "sans-serif",
+        &[("background", "#ffffef"), ("font-family", "sans-serif")],
     )?;
-    add_css_rule(&document, "#timeout_div", "font-family", "sans-serif")?;
 
     start_session_timer()?;
 

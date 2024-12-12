@@ -148,21 +148,41 @@ pub fn set_css_rules(document: &Document, css_rules: &CssRules) -> Result<(), Js
     Ok(())
 }
 
+/// Add style rules to the DOM.
+/// Generic parameter `T` allows `value` to be `&str` or `String`
+pub fn add_css_rules(
+    document: &Document,
+    selector: &str,
+    properties_values: &[(&str, &str)],
+) -> Result<(), JsValue> {
+    for pv in properties_values.iter() {
+        let (p, v) = pv;
+        add_css_rule(document, selector, p, v)?;
+    }
+    Ok(())
+}
+
 /// Add a style rule to the DOM.
 /// Generic parameter `T` allows `value` to be `&str` or `String`
-pub fn add_css_rule<T: Into<String>>(
+fn add_css_rule(
     document: &Document,
     selector: &str,
     property: &str,
-    value: T,
+    value: &str,
 ) -> Result<(), JsValue> {
     let value: String = value.into();
+    let selector: String = selector.into();
+    let property: String = property.into();
+    let value: String = value;
     // Check if the style element already contains CSS rules
 
-    if let Some(rules) = get_css_rules(document)?.selector_rules.get(selector) {
+    if let Some(rules) = get_css_rules(document)?
+        .selector_rules
+        .get(selector.as_str())
+    {
         // The selector is registered
 
-        if let Some(v) = rules.get(property) {
+        if let Some(v) = rules.get(property.as_str()) {
             // The property declared for this rule
             if v == &value {
                 // Rule already there
@@ -170,8 +190,7 @@ pub fn add_css_rule<T: Into<String>>(
             } else {
                 // Rule exists with a different value
                 panic!(
-                    "{}/{} has value: {}.  We want to set: {value}",
-                    selector, property, v,
+                    "{selector}/{property} has value: {v}.  We want to set: {value}",
                 );
             }
         }

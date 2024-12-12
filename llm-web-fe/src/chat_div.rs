@@ -4,7 +4,7 @@ use crate::llm_webpage::LlmWebPage;
 use crate::login_div::do_login;
 use crate::login_div::username_password_elements;
 use crate::make_request::make_request;
-use crate::manipulate_css::add_css_rule;
+use crate::manipulate_css::add_css_rules;
 use crate::set_page::get_doc;
 use crate::set_page::new_button;
 use crate::set_page::set_focus_on_element;
@@ -173,117 +173,160 @@ impl LlmWebPage for ChatDiv {
 
         // // Inject the style into the DOM.
         // clear_css(document)?;
-
-        add_css_rule(document, "#model_selection_tool", "display", "flex")?;
-        add_css_rule(
+        add_css_rules(
             document,
             "#model_selection_tool",
-            "flex-direction",
-            "column",
+            &[
+                ("border", ".5em solid #b05454"),
+                ("border-radius", ".2em"),
+                ("display", "flex"),
+                ("background", "#f3f8f8"),
+                ("width", "max-content"),
+                ("padding", ".3em"),
+                // ("margin", ".2em"),
+            ],
         )?;
-        add_css_rule(
+        add_css_rules(
             document,
-            "#model_selection_tool input[type=radio]",
-            "margin-bottom",
-            "10px",
+            "#side_panel_login_div",
+            &[("width", "max-content"), ("width", "max-content")],
         )?;
 
-        add_css_rule(document, "#multi_line_div", "grid-row", "1 / span 100")?;
-        add_css_rule(document, "#multi_line_div", "grid-column", "41 / span 120")?;
-        add_css_rule(document, "#multi_line_div", "overflow-wrap", "break-word")?;
-        add_css_rule(document, "#multi_line_div", "overflow-y", "scroll")?;
-        add_css_rule(document, "#multi_line_div", "z-index", "9999")?;
-        add_css_rule(document, "#multi_line_div", "opacity", "1")?;
-        add_css_rule(document, "#multi_line_div", "background-color", "white")?;
-        add_css_rule(document, "#multi_line_textarea", "height", "80%")?;
-        add_css_rule(document, "#multi_line_textarea", "width", "100%")?;
+        add_css_rules(
+            document,
+            "#model_selection_tool",
+            &[("flex-direction", "column"), ("margin-bottom", "10px")],
+        )?;
 
-        add_css_rule(document, ".prompt", "font-size", "small")?;
-        add_css_rule(document, ".prompt", "color", "#e86d6d")?;
-        add_css_rule(document, ".prompt", "background-color", "#fff4f4")?;
+        add_css_rules(
+            document,
+            "#multi_line_div",
+            &[
+                ("grid-row", "1 / span 100"),
+                ("grid-column", "41 / span 120"),
+                ("overflow-wrap", "break-word"),
+                ("overflow-y", "scroll"),
+                ("z-index", "9999"),
+                ("opacity", "1"),
+                ("background-color", "white"),
+            ],
+        )?;
+        add_css_rules(
+            document,
+            "#multi_line_textarea",
+            &[("height", "80%"), ("width", "100%")],
+        )?;
+        add_css_rules(
+            document,
+            ".prompt",
+            &[
+                ("font-size", "small"),
+                ("color", "#e86d6d"),
+                ("background-color", "#fff4f4"),
+            ],
+        )?;
 
-        add_css_rule(document, ".response", "font-size", "small")?;
-        add_css_rule(document, ".response", "color", "#450627")?;
-        add_css_rule(document, ".response", "background-color", "#f3f2f2")?;
+        add_css_rules(
+            document,
+            ".response",
+            &[
+                ("font-size", "small"),
+                ("color", "#450627"),
+                ("background-color", "#f3f2f2"),
+            ],
+        )?;
 
-        add_css_rule(document, "html, body", "height", "100%".to_string())?;
-        add_css_rule(document, "html, body", "margin", "0".to_string())?;
-        add_css_rule(document, "html, body", "padding", "0".to_string())?;
+        add_css_rules(
+            document,
+            "html, body",
+            &[("height", "100%"), ("margin", "0"), ("padding", "0")],
+        )?;
 
-        add_css_rule(document, ".grid-container", "display", "grid".to_string())?;
-        add_css_rule(document, ".grid-container", "height", "100%".to_string())?;
-        add_css_rule(document, ".grid-container", "width", "100%".to_string())?;
-        add_css_rule(document, ".grid-container", "padding", "0".to_string())?;
-        add_css_rule(document, ".grid-container", "margin", "0".to_string())?;
-        add_css_rule(document, ".grid-container", "overflow", "auto".to_string())?;
-
-        add_css_rule(
+        add_css_rules(
             document,
             ".grid-container",
-            "grid-template-columns",
-            format!("repeat({col}, 1fr)"),
+            &[
+                ("display", "grid"),
+                ("height", "100%"),
+                ("width", "100%"),
+                ("padding", "0"),
+                ("margin", "0"),
+                ("overflow", "auto"),
+                (
+                    "grid-template-columns",
+                    format!("repeat({col}, 1fr)").as_str(),
+                ),
+                ("grid-template-rows", format!("repeat({row}, 1fr)").as_str()),
+                ("gap", ".1em"),
+            ],
         )?;
-        add_css_rule(
-            document,
-            ".grid-container",
-            "grid-template-rows",
-            format!("repeat({row}, 1fr)"),
-        )?;
-        add_css_rule(document, ".grid-container", "gap", ".1em".to_string())?;
 
-        add_css_rule(
+        add_css_rules(
             document,
             "#response_div",
-            "grid-column",
-            format!("{response_l} / span {response_w}"),
+            &[
+                (
+                    "grid-column",
+                    format!("{response_l} / span {response_w}").as_str(),
+                ),
+                (
+                    "grid-row",
+                    format!("{response_t} / span {response_h}").as_str(),
+                ),
+                ("overflow-y", "scroll"),
+                ("overflow-wrap", "break-word"),
+            ],
         )?;
-        add_css_rule(
-            document,
-            "#response_div",
-            "grid-row",
-            format!("{response_t} / span {response_h}"),
-        )?;
-        add_css_rule(document, "#response_div", "overflow-y", "scroll")?;
-        add_css_rule(document, "#response_div", "overflow-wrap", "break-word")?;
 
-        add_css_rule(
+        add_css_rules(
             document,
             "#prompt_div",
-            "grid-column",
-            format!("{prompt_l} / span {prompt_w}"),
+            &[
+                ("grid-row", format!("{prompt_t} / span {prompt_h}").as_str()),
+                (
+                    "grid-column",
+                    format!("{prompt_l} / span {prompt_w}").as_str(),
+                ),
+                ("border", "1px solid black"),
+                ("display", "flex"),
+                ("align-items", "center"),
+            ],
         )?;
-        add_css_rule(
-            document,
-            "#prompt_div",
-            "grid-row",
-            format!("{prompt_t} / span {prompt_h}"),
-        )?;
-        add_css_rule(document, "#prompt_div", "border", "1px solid black")?;
-        add_css_rule(document, "#prompt_div", "display", "flex")?;
-        add_css_rule(document, "#prompt_div", "align-items", "center")?;
-        add_css_rule(document, "#prompt_input", "flex-grow", "1")?;
+        add_css_rules(document, "#prompt_input", &[("flex-grow", "1")])?;
 
-        add_css_rule(
+        add_css_rules(
             document,
             "#side-panel-div",
-            "grid-column",
-            format!("{side_panel_l} / span {side_panel_w}"),
+            &[
+                (
+                    "grid-column",
+                    format!("{side_panel_l} / span {side_panel_w}").as_str(),
+                ),
+                (
+                    "grid-row",
+                    format!("{side_panel_t} / span {side_panel_h}").as_str(),
+                ),
+            ],
         )?;
-        add_css_rule(
+        add_css_rules(
             document,
             "#side-panel-div",
-            "grid-row",
-            format!("{side_panel_t} / span {side_panel_h}"),
+            &[("border", "1px solid black")],
         )?;
-        add_css_rule(document, "#side-panel-div", "border", "1px solid black")?;
 
         // Pad the button to the left
-        add_css_rule(document, "#chat_submit", "margin-left", "1em")?;
+        add_css_rules(document, "#chat_submit", &[("margin-left", "1em")])?;
 
         // Multi line window open button
-        add_css_rule(document, "#open_multi_line", "margin-left", ".5em")?;
-        add_css_rule(document, "#open_multi_line", "margin-right", ".5em")?;
-        add_css_rule(document, "#open_multi_line", "height", "2em")?;
+        add_css_rules(
+            document,
+            "#open_multi_line",
+            &[
+                ("margin-left", ".5em"),
+                ("margin-right", ".5em"),
+                ("height", "2em"),
+            ],
+        )?;
 
         // cancel_button.set_id(format!("cancel_request_{key}").as_str());
         // cancel_button.set_attribute("class", "prompt_cancel_button")?;
@@ -292,56 +335,67 @@ impl LlmWebPage for ChatDiv {
         // border: none;
         // add_css_rule(document, ".prompt_cancel_button", "border", "none")?;
         // background-color: #f0f0f0;
-        add_css_rule(
+        add_css_rules(
             // Transparent
             document,
             ".prompt_cancel_button",
-            "background-color",
-            "rgba(0, 0, 0, 0)",
+            &[
+                ("background-color", "rgba(0, 0, 0, 0)"),
+                // (
+                // ("color", "#333"),
+                // ("font-size","16px"),
+                // cursor: pointer;
+                ("height", "1.5em"),
+            ],
         )?;
-        // color: #333;
-        // add_css_rule(document, ".prompt_cancel_button", "color", "#333")?;
-        // font-size: 16px;
-        // add_css_rule(document, ".prompt_cancel_button", "font-size", "16px")?;
-        // cursor: pointer;
-        // add_css_rule(document, ".svg_cancel_button", "cursor", "pointer")?;
-        // add_css_rule(document, ".svg_cancel_button", "width", "20px")?;
-        add_css_rule(document, ".prompt_cancel_button", "height", "1.5em")?;
-
-        // add_css_rule(document, ".prompt_cancel_button", "display", "flex")?;
-        // add_css_rule(
-        //     document,
-        //     ".prompt_cancel_button",
-        //     "justify-content",
-        //     "center",
-        // )?;
 
         // Align the cancel button vertically
-        add_css_rule(document, "li", "display", "flex")?;
-        add_css_rule(document, "li", "align-items", "center")?;
-        add_css_rule(document, ".delete_conversation_button", "height", "1.0em")?;
+        add_css_rules(
+            document,
+            "li",
+            &[("display", "flex"), ("align-items", "center")],
+        )?;
+        add_css_rules(
+            document,
+            ".delete_conversation_button",
+            &[("height", "1.0em")],
+        )?;
 
-        add_css_rule(document, ".cost_span", "font-size", "small")?;
-        add_css_rule(document, ".conversation_name", "font-size", "small")?;
-        add_css_rule(document, ".conversation_name", "width", "65%")?;
-        add_css_rule(document, ".conversation_name", "display", "inline-block")?;
-        add_css_rule(document, ".conversation_name", "overflow", "hidden")?;
-        add_css_rule(document, ".conversation_name", "white-space", "nowrap")?;
-        add_css_rule(document, ".conversation_name", "margin-right", ".4em")?;
-        add_css_rule(document, "ul", "list-style", "none")?;
+        add_css_rules(document, ".cost_span", &[("font-size", "small")])?;
+        add_css_rules(
+            document,
+            ".conversation_name",
+            &[
+                ("font-size", "small"),
+                ("width", "65%"),
+                ("display", "inline-block"),
+                ("overflow", "hidden"),
+                ("white-space", "nowrap"),
+                ("margin-right", ".4em"),
+            ],
+        )?;
+        add_css_rules(document, "ul", &[("list-style", "none")])?;
+        add_css_rules(
+            document,
+            ".meta_div",
+            &[
+                ("width", "20%"),
+                ("font-size", "small"),
+                ("padding", "1em"),
+                ("margin", "1em"),
+                ("display", "flex"),
+                ("flex-direction", "column"),
+                ("justify-content", "end"),
+            ],
+        )?;
 
-        add_css_rule(document, ".meta_div", "width", "20%")?;
-        add_css_rule(document, ".meta_div", "font-size", "small")?;
-        add_css_rule(document, ".meta_div", "padding", "1em")?;
-        add_css_rule(document, ".meta_div", "margin", "1em")?;
-        add_css_rule(document, ".meta_div", "display", "flex")?;
-        add_css_rule(document, ".meta_div", "flex-direction", "column")?;
-        add_css_rule(document, ".meta_div", "justify-content", "end")?;
-
-        add_css_rule(document, ".response_li", "align-items", "stretch")?;
-        add_css_rule(document, ".prune_button", "align-self", "flex-start")?;
-        add_css_rule(document, ".pr_div", "width", "80%")?;
-        add_css_rule(document, ".pr_div", "margin-right", "1em")?;
+        add_css_rules(document, ".response_li", &[("align-items", "stretch")])?;
+        add_css_rules(document, ".prune_button", &[("align-self", "flex-start")])?;
+        add_css_rules(
+            document,
+            ".pr_div",
+            &[("width", "80%"), ("margin-right", "1em")],
+        )?;
 
         Ok(chat_div)
     }

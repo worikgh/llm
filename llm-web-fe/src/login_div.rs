@@ -1,6 +1,6 @@
 use crate::llm_webpage::LlmWebPage;
 use crate::make_request::make_request;
-use crate::manipulate_css::add_css_rule;
+use crate::manipulate_css::add_css_rules;
 use crate::set_page::get_doc;
 use crate::set_page::set_page;
 use crate::set_page::set_status;
@@ -48,29 +48,23 @@ impl LlmWebPage for LoginDiv {
         login_fields_div.append_child(&password_input)?;
         login_fields_div.append_child(&user_text_submit)?;
         login_main_div.append_child(&login_fields_div)?;
-        add_css_rule(document, "html, body", "height", "100%".to_string())?;
-        add_css_rule(document, "html, body", "margin", "0".to_string())?;
-        add_css_rule(
+        add_css_rules(
+            document,
+            "html, body",
+            &[("height", "100%"), ("margin", "0")],
+        )?;
+        add_css_rules(
             document,
             "#login-fields-div > input",
-            "margin",
-            "1em".to_string(),
+            &[
+                ("margin", "1em"),
+                ("border", "2px solid black"),
+                ("width", "50%"),
+                ("display", "flex"),
+                ("flex-direction", "column"),
+            ],
         )?;
-        add_css_rule(
-            document,
-            "#login-fields-div",
-            "border",
-            "2px solid black".to_string(),
-        )?;
-        add_css_rule(document, "#login-fields-div", "width", "50%".to_string())?;
-        add_css_rule(document, "#login-fields-div", "display", "flex".to_string())?;
-        add_css_rule(
-            document,
-            "#login-fields-div",
-            "flex-direction",
-            "column".to_string(),
-        )?;
-        add_css_rule(document, "#login-fields-div", "padding", "10px".to_string())?;
+        add_css_rules(document, "#login-fields-div", &[("padding", "10px")])?;
 
         let on_click = EventListener::new(&user_text_submit, "click", move |_event| {
             let username: String = if let Some(input) = username_input.dyn_ref::<HtmlInputElement>()
