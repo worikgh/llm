@@ -3,14 +3,14 @@ mod code {
     pub mod my_helper;
     pub mod shared_state;
 }
-use code::shared_state::SharedState;
 use chrono::Local;
 use code::my_helper::MyHelper;
+use code::shared_state::SharedState;
+use context::Context;
 use directories::ProjectDirs;
 use image::ImageFormat;
 use llm_rs::model_mode::ModelMode;
 use openai_interface::ApiInterface;
-use context::Context;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use regex::Regex;
@@ -36,8 +36,8 @@ use std::{env, fs};
 extern crate llm_rs;
 
 use clap::Parser;
-use llm_rs::openai_interface;
 use llm_rs::context;
+use llm_rs::openai_interface;
 
 const DEFAULT_MODEL: &str = "gpt-4";
 const DEFAULT_TOKENS: u32 = 2_000_u32;
@@ -928,25 +928,31 @@ fn main() -> Result<(), Box<dyn Error>> {
                             .unwrap()
                             .parse::<f64>()
                             .unwrap();
-			fn update_spent(cost: f64) -> impl FnMut(SharedState) -> SharedState {
-			    move |mut ss| {
-				ss.spent += cost;
-				ss
-			    }
-			}
+                        fn update_spent(cost: f64) -> impl FnMut(SharedState) -> SharedState {
+                            move |mut ss| {
+                                ss.spent += cost;
+                                ss
+                            }
+                        }
 
-			// Call read_write_atomic with the closure
-			let ss: SharedState = match SharedState::read_write_atomic(update_spent(cli_interface.cost)){
-			    Ok(ss) => ss,
-			    Err(err) => panic!("{err}: Failed to update costs"),
-			};
+                        // Call read_write_atomic with the closure
+                        let ss: SharedState = match SharedState::read_write_atomic(update_spent(
+                            cli_interface.cost,
+                        )) {
+                            Ok(ss) => ss,
+                            Err(err) => panic!("{err}: Failed to update costs"),
+                        };
 
-			let this_cost = cli_interface.cost;
-			let total_cost = ss.spent;
-			let conversation_cost = api_interface.context.cost;
+                        let this_cost = cli_interface.cost;
+                        let total_cost = ss.spent;
+                        let conversation_cost = api_interface.context.cost;
                         format!(
                             "{:.2}/{:.2}/{:.2}:{}{}\n{}",
-                            this_cost, conversation_cost, total_cost, api_interface.context.len(), cli_interface.after_request(apt_result.headers)?,
+                            this_cost,
+                            conversation_cost,
+                            total_cost,
+                            api_interface.context.len(),
+                            cli_interface.after_request(apt_result.headers)?,
                             apt_result.body,
                         )
                     }
@@ -1002,7 +1008,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             eprintln!(
                 "Conversation: {} turns and {} bytes",
                 api_interface.context.len(),
-                api_interface.context.sz());
+                api_interface.context.sz()
+            );
         }
 
         _ = conversation_record_file

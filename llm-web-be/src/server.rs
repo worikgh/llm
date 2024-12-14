@@ -52,7 +52,8 @@ pub struct AppBackend {
 
 impl AppBackend {
     pub fn new(testing: bool) -> Self {
-        let sessions = Arc::new(Mutex::new(HashMap::<String, Session>::new()));
+        let hm = HashMap::<String, Session>::new();
+        let sessions = Arc::new(Mutex::new(hm));
         Self { sessions, testing }
     }
 
@@ -181,7 +182,7 @@ impl AppBackend {
                             uuid: Some(lr.uuid),
                             token: Some(lr.token),
                             credit,
-			    expire:lr.expiry,
+                            expire: lr.expiry,
                         }
                     }
                     None => LoginResponse {
@@ -189,7 +190,7 @@ impl AppBackend {
                         uuid: None,
                         token: None,
                         credit: 0.0,
-			expire: Utc::now(),
+                        expire: Utc::now(),
                     },
                 };
                 Message {
@@ -334,7 +335,10 @@ impl AppBackend {
                 cost,
                 response,
                 credit,
-                backend_data: Some(ExtraInfo { headers:headers_r, duration: ms.as_millis() }),
+                backend_data: Some(ExtraInfo {
+                    headers: headers_r,
+                    duration: ms.as_millis(),
+                }),
             }
         };
 

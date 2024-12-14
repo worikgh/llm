@@ -13,7 +13,7 @@ use std::fmt;
 use std::io;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
-
+const SESSION_EXP: i64 = 2; // Hours a session lasts for if incactive
 #[derive(Copy, Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 /// Hierarchical.  Admin has all rights.  Chat can chat, NoRights....
 pub enum UserRights {
@@ -41,7 +41,7 @@ pub struct LoginResult {
     //pub rights: UserRights,
     pub uuid: Uuid,
     pub token: String, // Send this back to user.  It must be sent with every request
-    pub expiry:DateTime<Utc>,
+    pub expiry: DateTime<Utc>,
 }
 
 /// Check if a user is authorised with `password`.  If so create an
@@ -63,7 +63,7 @@ pub async fn login(
             if verify(&password, &(record.password)).unwrap() {
                 // Successful login.
                 // Initialise session and a result
-                let expiry: DateTime<Utc> = Utc::now() + Duration::hours(6);
+                let expiry: DateTime<Utc> = Utc::now() + Duration::hours(SESSION_EXP);
                 let key = record.key.clone();
                 let uuid: Uuid = record.uuid;
                 let token = generate_token(&uuid, &expiry, &key);
@@ -76,7 +76,7 @@ pub async fn login(
                     //rights: record.level,
                     uuid,
                     token,
-		    expiry,
+                    expiry,
                 }))
             } else {
                 // Failed login.  Not an error
@@ -174,7 +174,7 @@ pub mod tests {
     #[test]
     fn token_coding() {
         let uuid = Uuid::new_v4();
-        let expiry: DateTime<Utc> = Utc::now() + Duration::hours(6);
+        let expiry: DateTime<Utc> = Utc::now() + Duration::hours(SESSION_EXP);
         let key: Vec<u8> = vec![1, 2, 3, 4];
         let token = generate_token(&uuid, &expiry, &key);
 

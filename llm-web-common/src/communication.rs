@@ -3,8 +3,8 @@
 //use rsa::RsaPublicKey;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 //use uuid::serde;
 use uuid::Uuid;
 /// The communication between the front end and the back end uses
@@ -101,10 +101,10 @@ pub struct ChatPrompt {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ExtraInfo {
     /// The OpenAI response headers.  Added after it is received
-    pub headers:HashMap<String, String>,
+    pub headers: HashMap<String, String>,
 
     /// The time the request took in milli seconds
-    pub duration:u128,
+    pub duration: u128,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -129,9 +129,8 @@ pub struct ChatResponse {
     /// The model that the LLM used.  It might not be the model asked for.
     pub model: String,
 
-
     /// The data about the hat that the backend sends the front end
-    pub backend_data:Option<ExtraInfo>,
+    pub backend_data: Option<ExtraInfo>,
 }
 
 // Display for CommType

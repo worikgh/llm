@@ -189,9 +189,7 @@ fn add_css_rule(
                 return Ok(());
             } else {
                 // Rule exists with a different value
-                panic!(
-                    "{selector}/{property} has value: {v}.  We want to set: {value}",
-                );
+                panic!("{selector}/{property} has value: {v}.  We want to set: {value}",);
             }
         }
     }
