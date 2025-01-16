@@ -47,18 +47,17 @@ pub struct AppBackend {
     /// The front end logs in and starts a session.  Sessions are
     /// indexed by the session token
     pub sessions: Arc<Mutex<HashMap<String, Session>>>,
-    testing: bool,
 }
 
 impl AppBackend {
-    pub fn new(testing: bool) -> Self {
+    pub fn new() -> Self {
         let hm = HashMap::<String, Session>::new();
         let sessions = Arc::new(Mutex::new(hm));
-        Self { sessions, testing }
+        Self { sessions,  }
     }
 
     /// Main loop
-    pub async fn run_server(testing: bool) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn run_server() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // First parameter is port number (optional, defaults to 1337)
         let port: usize = std::env::args()
             .nth(1)
@@ -67,7 +66,7 @@ impl AppBackend {
 
         let addr: SocketAddr = format!("127.0.0.1:{}", port).parse()?;
 
-        let app_backend = AppBackend::new(testing);
+        let app_backend = AppBackend::new();
         let data_server = Arc::new(app_backend);
         let service = make_service_fn(move |_: _| {
             let data_server = Arc::clone(&data_server);
@@ -273,13 +272,9 @@ impl AppBackend {
                 .await
                 .unwrap();
 
-            let chat_response: (HashMap<String, String>, ChatRequestInfo) = if self.testing {
-                (HashMap::new(), ChatRequestInfo::test_instance())
-            } else {
-                match response_result {
+            let chat_response: (HashMap<String, String>, ChatRequestInfo) = match response_result {
                     Ok(response) => response,
                     Err(err) => return err,
-                }
             };
 
             // Get some data out of the headers.  Going to add a time stamp
@@ -549,7 +544,7 @@ mod tests {
             comm_type: CommType::LoginRequest,
             object: serde_json::to_string(&lr).unwrap(),
         };
-        let server = AppBackend::new(true);
+        let server = AppBackend::new();
         let result = server.process_login(&msg).await;
         eprintln!("result ({})", result,);
         assert!(result.comm_type == CommType::LoginResponse);
@@ -567,7 +562,7 @@ mod tests {
             comm_type: CommType::ChatPrompt,
             object: serde_json::to_string(&lr).unwrap(),
         };
-        let server = AppBackend::new(true);
+        let server = AppBackend::new();
         let result = server.process_login(&msg).await;
         eprintln!("result.comm_type ({})", result.comm_type,);
         assert!(result.comm_type == CommType::InvalidRequest);
@@ -576,7 +571,7 @@ mod tests {
     #[tokio::test]
     async fn server_test() {
         // Server to test
-        let server = AppBackend::new(true);
+        let server = AppBackend::new();
 
         // A user name and password to add
         let username = get_unique_user("server::test::server_test").await;

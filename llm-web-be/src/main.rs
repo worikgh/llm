@@ -18,15 +18,13 @@ type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>
 #[tokio::main]
 async fn main() {
     let mut args: env::Args = env::args();
-    // There is always one argument
     let _programme_name = args.next().unwrap();
 
-    // As a vector, it is possible to examine the first element and
-    // not consume it.  If it is "test" then the LLM is not contacted
+    // If one argument "test", then the LLM is not contacted
     let mut args: Vec<String> = args.collect();
     if args.is_empty() || args[0] == "test" {
-        // No args, or one "test", means run server
-        if let Err(e) = server::AppBackend::run_server(!args.is_empty() && args[0] == "test").await
+
+        if let Err(e) = server::AppBackend::run_server().await
         {
             eprintln!("FAILED: {}", e);
             std::process::exit(1);
