@@ -71,11 +71,16 @@ pub fn initialise_page() -> Result<(), JsValue> {
         &document,
         "#header",
         &[
+	    ("align-items","center"),
+	    ("display", "flex",),
+	    ("justify-content", "space-between"),
+            ("background", "#f8eaea"),
+            ("border", "1px solid black"),
             ("height", format!("{header_height}%").as_str()),
-            ("width", format!("{main_width}%").as_str()),
+            ("left", "0"),
             ("position", "fixed"),
             ("top", "0"),
-            ("left", "0"),
+            ("width", format!("{main_width}%").as_str()),
         ],
     )?;
     add_css_rules(
@@ -121,11 +126,6 @@ pub fn initialise_page() -> Result<(), JsValue> {
         &[("background-color", "#f2fbfa"), ("float", "right")],
     )?;
     add_css_rules(&document, "#footer", &[("border", "1px solid black")])?;
-    add_css_rules(
-        &document,
-        "#header",
-        &[("background", "#f8eaea"), ("border", "1px solid black")],
-    )?;
     add_css_rules(
         &document,
         "#side_panel_headers_div",
