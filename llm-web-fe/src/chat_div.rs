@@ -602,10 +602,6 @@ impl Chats {
         // Preconditions:
         // 1. There is a current conversation
         // 2. The `prompt` is not None in current conversation
-        print_to_console(format!(
-            "update_conversation:  Headers?: {}",
-            response.backend_data.is_some()
-        ));
         let conversation = self
             .get_conversation_mut(&conversation_key)
             .ok_or(format!("Failed to get conversation: {conversation_key}").as_str())?;
@@ -830,14 +826,6 @@ fn make_request_cb(
     current_conversation: usize,
 ) {
     let closure = move || -> Result<(), JsValue> {
-        print_to_console(
-            format!(
-                "make_request_cb 1 {}: {}",
-                message.comm_type,
-                message.object.as_str()
-            )
-            .as_str(),
-        );
         match message.comm_type {
             CommType::ChatResponse => {
                 let chat_response: ChatResponse = serde_json::from_str(message.object.as_str())
@@ -1431,9 +1419,7 @@ fn make_model_selection_tool(document: &Document) -> Result<Element, JsValue> {
             s
         })
         .collect::<Vec<HtmlSpanElement>>();
-    print_to_console(format!("options: {options:?}"));
     for o in options.iter() {
-        print_to_console(format!("o: {o:?}"));
         result.append_child(o)?;
     }
     Ok(result)
@@ -1443,7 +1429,6 @@ fn set_selected_model(model: &str, model_selection_tool: &Element) -> Result<(),
     let elements: HtmlCollection = model_selection_tool.get_elements_by_class_name("model_input");
     for i in 0..elements.length() {
         let inp: HtmlInputElement = elements.item(i).unwrap().dyn_into()?;
-        print_to_console(format!("input value: {} cmp: {model}", inp.value()));
         if inp.value().as_str() == model {
             inp.set_checked(true);
         } else {

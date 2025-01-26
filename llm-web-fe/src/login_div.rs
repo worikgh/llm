@@ -22,7 +22,6 @@ pub struct LoginDiv;
 impl LlmWebPage for LoginDiv {
     ///  The login screen
     fn initialise_page(document: &Document) -> Result<Element, JsValue> {
-        print_to_console("login_div 1");
 
         let login_main_div = document.create_element("div")?;
         login_main_div.set_id("login-main-div");
