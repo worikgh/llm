@@ -9,8 +9,11 @@ use crate::data_store::update_user;
 use crate::session::Session;
 use chrono::Utc;
 use hyper::body;
+use hyper::client::conn::Parts;
 use hyper::service::{make_service_fn, service_fn};
+use hyper::HeaderMap;
 use hyper::Server;
+use hyper::Version;
 use hyper::{Body, Request, Response, StatusCode};
 use llm_rs::json::ChatRequestInfo;
 use llm_rs::json::Usage;
@@ -53,17 +56,17 @@ impl AppBackend {
     pub fn new() -> Self {
         let hm = HashMap::<String, Session>::new();
         let sessions = Arc::new(Mutex::new(hm));
-        Self { sessions,  }
+        Self { sessions }
     }
 
     /// Main loop
     pub async fn run_server() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // First parameter is port number (optional, defaults to 1337)
-        let port: usize = std::env::args()
-            .nth(1)
-            .and_then(|p| p.parse().ok())
-            .unwrap_or(1337);
-
+        let port: usize = // std::env::args()
+            // .nth(1)
+            // .and_then(|p| p.parse().ok())
+            // .unwrap_or(1337);
+	    1337;
         let addr: SocketAddr = format!("127.0.0.1:{}", port).parse()?;
 
         let app_backend = AppBackend::new();
@@ -273,8 +276,8 @@ impl AppBackend {
                 .unwrap();
 
             let chat_response: (HashMap<String, String>, ChatRequestInfo) = match response_result {
-                    Ok(response) => response,
-                    Err(err) => return err,
+                Ok(response) => response,
+                Err(err) => return err,
             };
 
             // Get some data out of the headers.  Going to add a time stamp
@@ -355,8 +358,7 @@ impl AppBackend {
 
     /// Dispatch the request to subroutines
     async fn process_request(&self, req: Request<Body>) -> Result<Response<Body>, ServerError> {
-        let mut response = Response::new(Body::empty());
-        match (req.method(), req.uri().path()) {
+        let response: Response<Body> = match (req.method(), req.uri().path()) {
             (_, "/api/login") => {
                 let str = Self::body_to_string(req.into_body()).await.unwrap();
                 let message: Message = match serde_json::from_str(&str) {
@@ -367,7 +369,7 @@ impl AppBackend {
                 let return_message = self.process_login(&message).await;
                 let s = serde_json::to_string(&return_message).unwrap();
 
-                *response.body_mut() = Body::from(s);
+                Response::new(Body::from(s))
             }
             (_, "/api/chat") => {
                 let str = Self::body_to_string(req.into_body()).await.unwrap();
@@ -386,7 +388,7 @@ impl AppBackend {
                 );
                 let s = serde_json::to_string(&return_message).unwrap();
 
-                *response.body_mut() = Body::from(s);
+                Response::new(Body::from(s))
             }
             (_, "/api/logout") => {
                 let str = Self::body_to_string(req.into_body()).await.unwrap();
@@ -396,15 +398,15 @@ impl AppBackend {
                 };
                 let return_message = self.process_logout(&message).await;
                 let s = serde_json::to_string(&return_message).unwrap();
-                *response.body_mut() = Body::from(s);
+                Response::new(Body::from(s))
             }
 
             // Catch-all 404.
-            _ => {
-                *response.status_mut() = StatusCode::NOT_FOUND;
-            }
+            _ => Response::builder()
+                .status(StatusCode::NOT_FOUND)
+                .body(Body::from("404 Not Found"))
+                .unwrap(),
         };
-
         Ok(response)
     }
 
