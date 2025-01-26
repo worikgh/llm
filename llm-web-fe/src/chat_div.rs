@@ -1147,7 +1147,17 @@ fn process_chat_response(
             panic![];
         }
         Ok(mut cas) => {
-            cas.credit = credit;
+            // Update credit and expiry
+
+	    let expire = chat_response.expire;
+            document
+                .body()
+                .as_mut()
+                .unwrap()
+                .set_attribute("data.expiry", expire.to_rfc3339().as_str())
+                .unwrap();
+
+	    cas.credit = credit;
             cas.update_conversation(chat_response, conversation_key)?;
             if let Some(cc) = cas.current_conversation {
                 // There is a current conversation

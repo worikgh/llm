@@ -44,6 +44,11 @@ pub struct LoginResult {
     pub expiry: DateTime<Utc>,
 }
 
+/// Get the next expiry time.  Now plus a constant
+pub fn next_expire() -> DateTime<Utc> {
+    Utc::now() + Duration::hours(SESSION_EXP)
+}
+
 /// Check if a user is authorised with `password`.  If so create an
 /// entry in the session database and return a `LoginResult` object
 /// for them.  If they are not authorised return None.
@@ -63,7 +68,7 @@ pub async fn login(
             if verify(&password, &(record.password)).unwrap() {
                 // Successful login.
                 // Initialise session and a result
-                let expiry: DateTime<Utc> = Utc::now() + Duration::hours(SESSION_EXP);
+                let expiry: DateTime<Utc> = next_expire();
                 let key = record.key.clone();
                 let uuid: Uuid = record.uuid;
                 let token = generate_token(&uuid, &expiry, &key);

@@ -38,4 +38,7 @@ impl Session {
             level,
         }
     }
+    pub fn set_expire(&mut self, new_expire: DateTime<Utc>) {
+        self.expire = new_expire;
+    }
 }

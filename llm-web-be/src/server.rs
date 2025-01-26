@@ -3,10 +3,12 @@
 //! hyper will automatically use HTTP/2 if a client starts talking HTTP/2,
 //! otherwise HTTP/1.1 will be used.
 use crate::authorisation::login;
+use crate::authorisation::next_expire;
 use crate::authorisation::LoginResult;
 use crate::authorisation::UserRights;
 use crate::data_store::update_user;
 use crate::session::Session;
+use chrono::DateTime;
 use chrono::Utc;
 use hyper::body;
 use hyper::service::{make_service_fn, service_fn};
@@ -60,9 +62,9 @@ impl AppBackend {
     pub async fn run_server() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         // First parameter is port number (optional, defaults to 1337)
         let port: usize = // std::env::args()
-            // .nth(1)
-            // .and_then(|p| p.parse().ok())
-            // .unwrap_or(1337);
+        // .nth(1)
+        // .and_then(|p| p.parse().ok())
+        // .unwrap_or(1337);
 	    1337;
         let addr: SocketAddr = format!("127.0.0.1:{}", port).parse()?;
 
@@ -213,20 +215,36 @@ impl AppBackend {
     async fn process_chat_request(&self, message: &Message) -> Message {
         if message.comm_type != CommType::ChatPrompt {
             let chat_response = InvalidRequest {
-                reason: format!("Invalid message tupe sent to `chat`: {}", message.comm_type),
+                reason: format!("Invalid message type sent to `chat`: {}", message.comm_type),
             };
             return Message {
                 comm_type: CommType::InvalidRequest,
                 object: serde_json::to_string(&chat_response).unwrap(),
             };
         }
+
         let response: ChatResponse = {
             let start = Instant::now();
             // Forced unwrap OK because comm_type is ChatPrompt
             let prompt: ChatPrompt =
                 serde_json::from_str(&message.object).expect("Should be a ChatPrompt");
             let token = prompt.token.clone();
-
+            {
+                // Reset the session expiry
+                let session = self.sessions.clone();
+                let mut session = session.lock().unwrap();
+                if let Some(session) = session.get_mut(&token) {
+                    session.set_expire(next_expire());
+                } else {
+                    return Message {
+                        comm_type: CommType::InvalidRequest,
+                        object: serde_json::to_string(&InvalidRequest {
+                            reason: format!("Cannot recover session using token: {token}"),
+                        })
+                        .unwrap(),
+                    };
+                }
+            }
             // Must verify the request
             if !self.valid_session(prompt.token.as_str()) {
                 let chat_response = InvalidRequest {
@@ -298,6 +316,7 @@ impl AppBackend {
             let credit: f64;
             let uuid: Uuid;
             let level: UserRights;
+            let expire: DateTime<Utc>;
             {
                 let mut session_ref = self.sessions.lock().unwrap();
                 let session_ref = (*session_ref).get_mut(token.as_str()).unwrap();
@@ -312,6 +331,8 @@ impl AppBackend {
                 credit = session_ref.credit;
                 uuid = session_ref.uuid;
                 level = session_ref.level;
+
+                expire = session_ref.expire;
             }
             eprintln!(
                 "Second opinion: {}",
@@ -326,6 +347,7 @@ impl AppBackend {
             let end = Instant::now();
             let ms = end.duration_since(start); //:.as_micros();
             ChatResponse {
+                expire,
                 model,
                 cost,
                 response,
