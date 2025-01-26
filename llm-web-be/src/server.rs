@@ -9,11 +9,8 @@ use crate::data_store::update_user;
 use crate::session::Session;
 use chrono::Utc;
 use hyper::body;
-use hyper::client::conn::Parts;
 use hyper::service::{make_service_fn, service_fn};
-use hyper::HeaderMap;
 use hyper::Server;
-use hyper::Version;
 use hyper::{Body, Request, Response, StatusCode};
 use llm_rs::json::ChatRequestInfo;
 use llm_rs::json::Usage;
@@ -356,7 +353,7 @@ impl AppBackend {
         }
     }
 
-    /// Dispatch the request to subroutines
+    /// Handle requests and route them to handlers
     async fn process_request(&self, req: Request<Body>) -> Result<Response<Body>, ServerError> {
         let response: Response<Body> = match (req.method(), req.uri().path()) {
             (_, "/api/login") => {
