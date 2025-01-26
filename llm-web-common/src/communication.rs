@@ -21,15 +21,15 @@ pub enum CommType {
     InvalidRequest,
 }
 
-/// The messae as sent: `comm_type` says what type it is, the String
-/// is encoded JSON of the object itself.  
+/// The message as sent: `comm_type` says what type it is, the String
+/// is encoded JSON of the object itself.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Message {
     pub comm_type: CommType,
     pub object: String,
 }
 
-/// Server -> Client.  
+/// Server -> Client.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct InvalidRequest {
     pub reason: String,
@@ -86,7 +86,7 @@ pub struct LLMMessage {
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
 pub struct ChatPrompt {
-    /// The model to use    
+    /// The model to use
     pub model: String,
 
     // The
@@ -111,6 +111,10 @@ pub struct ExtraInfo {
 /// From llm-web-be -> llm-web-fe.  Response from LLM
 /// Has to send back all the information the front end needs
 pub struct ChatResponse {
+
+    // The next expiry time.  Updated each chat
+    pub expire: DateTime<Utc>,
+
     // The remaining credit the user has
     pub credit: f64,
 

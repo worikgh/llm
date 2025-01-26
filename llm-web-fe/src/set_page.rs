@@ -71,9 +71,9 @@ pub fn initialise_page() -> Result<(), JsValue> {
         &document,
         "#header",
         &[
-	    ("align-items","center"),
-	    ("display", "flex",),
-	    ("justify-content", "space-between"),
+            ("align-items", "center"),
+            ("display", "flex"),
+            ("justify-content", "space-between"),
             ("background", "#f8eaea"),
             ("border", "1px solid black"),
             ("height", format!("{header_height}%").as_str()),

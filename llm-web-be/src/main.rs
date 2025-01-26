@@ -23,9 +23,7 @@ async fn main() {
     // If one argument "test", then the LLM is not contacted
     let mut args: Vec<String> = args.collect();
     if args.is_empty() || args[0] == "test" {
-
-        if let Err(e) = server::AppBackend::run_server().await
-        {
+        if let Err(e) = server::AppBackend::run_server().await {
             eprintln!("FAILED: {}", e);
             std::process::exit(1);
         }
