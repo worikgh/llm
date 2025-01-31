@@ -1,7 +1,4 @@
-// mod authorisation;
-// mod session;
-// mod websocket_server;
-// use crate::server::Server;
+//! The backend server for llm-web.  Handles the communications with LLM
 extern crate bcrypt;
 extern crate llm_rs;
 extern crate llm_web_common;

@@ -33,7 +33,7 @@ const FILENAME: &str = "users.txt";
 /// This is the main gateway into the data store.  The data is in a
 /// JSON file, and only one process can access it at a time.  This
 /// returns a opened, read/write locked file handle.
-/// This is very simple.  
+/// This is very simple.
 fn get_locked_handle() -> io::Result<File> {
     let file = match OpenOptions::new()
         .write(true)
@@ -158,7 +158,7 @@ pub async fn add_user(username: &str, password: &str) -> io::Result<bool> {
     .await?
 }
 
-/// Get all the authorisation records for a read only purpose
+/// Get all the [`AuthorisationRecord']s
 pub async fn get_user_records() -> io::Result<Vec<AuthorisationRecord>> {
     let mut file: File = get_locked_handle()?;
     let mut s = String::new();
@@ -189,7 +189,7 @@ pub async fn get_user(uuid: Uuid) -> io::Result<AuthorisationRecord> {
         .clone())
 }
 
-/// Save the user data out of a Session  
+/// Save the user data out of a Session
 /// Precondition: User identified by `session` must exist
 #[allow(unused)]
 pub async fn update_user(uuid: Uuid, credit: f64, level: UserRights) -> io::Result<()> {

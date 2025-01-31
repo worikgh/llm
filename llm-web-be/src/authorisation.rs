@@ -1,3 +1,8 @@
+//! Define what a user of this can do.  When a user record is created
+//! an `AuthorisationRecord` is created and stored with it.  Currently
+//! not used much.  All records get `UserRights::Chat`.  This exists
+//! to allow administration through the web based front end.
+//! Currently administration is though a command line interface
 use crate::data_store::get_user_records;
 use crate::session::Session;
 use base64::{engine::general_purpose, Engine as _};
@@ -13,14 +18,19 @@ use std::fmt;
 use std::io;
 use std::sync::{Arc, Mutex};
 use uuid::Uuid;
-const SESSION_EXP: i64 = 2; // Hours a session lasts for if incactive
+
+/// How long a [`LoginResult::token`] will remain valid for if the
+/// session is inactive
+const SESSION_EXP: i64 = 2;
+
 #[derive(Copy, Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-/// Hierarchical.  Admin has all rights.  Chat can chat, NoRights....
+/// Hierarchical.  `Admin` has all rights.  `Chat` can chat, `NoRights`....
 pub enum UserRights {
     NoRights,
     Chat,
     Admin,
 }
+
 impl fmt::Display for UserRights {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -30,28 +40,33 @@ impl fmt::Display for UserRights {
         }
     }
 }
-/// Get a list of user records
+
+/// Return a vector of [`AuthorisationRecord`]s for all users
 pub async fn users() -> io::Result<Vec<AuthorisationRecord>> {
     Ok(get_user_records().await?.to_vec())
 }
 
-/// Returned to caller on successful login
+/// Returned  on a successful login
 #[derive(Debug)]
 pub struct LoginResult {
-    //pub rights: UserRights,
     pub uuid: Uuid,
-    pub token: String, // Send this back to user.  It must be sent with every request
+
+    // Send this back to user.  It must be returned with every request
+    // for authorisation
+    pub token: String,
+
     pub expiry: DateTime<Utc>,
 }
 
-/// Get the next expiry time.  Now plus a constant
+/// Get the time that the user's current session will expire if there
+/// is no activity.  Now, plus constant [`SESSION_EXP`]
 pub fn next_expire() -> DateTime<Utc> {
     Utc::now() + Duration::hours(SESSION_EXP)
 }
 
 /// Check if a user is authorised with `password`.  If so create an
-/// entry in the session database and return a `LoginResult` object
-/// for them.  If they are not authorised return None.
+/// entry in the session database and return a [`LoginResult`] object
+/// for them.  If they are not authorised return [`None`].
 pub async fn login(
     username: String,
     password: String,
@@ -118,7 +133,8 @@ impl fmt::Display for AuthorisationRecord {
         )
     }
 }
-/// Handle tokens.  Tokens are made from a uuid and session expiry
+
+/// Authorisation tokens.  Tokens are structured from a uuid and session expiry
 /// time.  The uuid and expiry can be recovered.  (No use for that yet)
 pub fn generate_token(uuid: &Uuid, expiry: &DateTime<Utc>, key: &[u8]) -> String {
     general_purpose::STANDARD

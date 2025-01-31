@@ -19,10 +19,10 @@ use wasm_bindgen::JsValue;
 use web_sys::XmlHttpRequest;
 use web_sys::{Document, Element, HtmlInputElement};
 pub struct LoginDiv;
-impl LlmWebPage for LoginDiv {
-    ///  The login screen
-    fn initialise_page(document: &Document) -> Result<Element, JsValue> {
 
+impl LlmWebPage for LoginDiv {
+    ///  Generate and return the login screen
+    fn initialise_page(document: &Document) -> Result<Element, JsValue> {
         let login_main_div = document.create_element("div")?;
         login_main_div.set_id("login-main-div");
 
@@ -32,10 +32,6 @@ impl LlmWebPage for LoginDiv {
 
         // Username and pasword elements
         let (username_input, password_input) = username_password_elements("login_div")?;
-
-        // Hack so logging in quicker
-        // username_input.set_attribute("value", "a")?;
-        // password_input.set_attribute("value", "b")?;
 
         // Login button
         let user_text_submit = document.create_element("button")?;
@@ -65,6 +61,7 @@ impl LlmWebPage for LoginDiv {
         )?;
         add_css_rules(document, "#login-fields-div", &[("padding", "10px")])?;
 
+        // Handler to log the user in
         let on_click = EventListener::new(&user_text_submit, "click", move |_event| {
             let username: String = if let Some(input) = username_input.dyn_ref::<HtmlInputElement>()
             {
@@ -81,25 +78,29 @@ impl LlmWebPage for LoginDiv {
             _ = do_login(username, password).unwrap();
         });
         on_click.forget();
+
+        // Return the prepared DIV
         Ok(login_main_div)
     }
 }
 
+/// Send the login request to the backend
 pub fn do_login(username: String, password: String) -> Result<XmlHttpRequest, JsValue> {
     let login_request = LoginRequest {
         username: username.clone(),
         password,
     };
     let login_message = Message::from(login_request);
-    let u = username.clone();
-
     make_request(
         login_message,
-        move |msg: Message| login_cb(msg, u.clone()),
+        move |msg: Message| login_cb(msg, username.clone()),
         || (),
     )
 }
 
+/// Callback to respond to a Login request response.  `msg` contains
+/// the `LoginResponse` that has details of the successful login or a
+/// failure status
 fn login_cb(msg: Message, username: String) {
     {
         match msg.comm_type {
@@ -109,13 +110,14 @@ fn login_cb(msg: Message, username: String) {
                 if lr.success {
                     // Store token and expiry time
                     let token = lr.token.unwrap();
-                    set_status(format!("Setting token: {token}").as_str());
+                    let expire = lr.expire;
 
+                    // Store the session data in the DOM
                     let head = document.body().unwrap();
                     head.set_attribute("data.token", token.as_str()).unwrap();
                     head.set_attribute("data.username", username.as_str())
                         .unwrap();
-                    head.set_attribute("data.expiry", lr.expire.to_rfc3339().as_str())
+                    head.set_attribute("data.expiry", expire.to_rfc3339().as_str())
                         .unwrap();
                     set_page(Pages::ChatDiv).unwrap();
                     update_cost_display(&document, lr.credit);
@@ -131,7 +133,8 @@ fn login_cb(msg: Message, username: String) {
 }
 
 /// The pair of HtmlInputElements for logging in.  `prefix` to avoid
-/// name collisions
+/// name collisions between the main login page and the side panel
+/// which both display login elements
 pub fn username_password_elements(
     prefix: &str,
 ) -> Result<(HtmlInputElement, HtmlInputElement), JsValue> {

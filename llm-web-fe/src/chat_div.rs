@@ -1,3 +1,4 @@
+//! The code that drives the "chat" interface
 use crate::filters;
 use crate::filters::text_for_html;
 use crate::llm_webpage::LlmWebPage;
@@ -551,6 +552,8 @@ pub struct Chats {
     // conversation, at the beginning and when user clears a
     // conversation.
     current_conversation: Option<usize>,
+
+    /// Maintain `credit` by subtracting the cost of chat responses
     credit: f64,
 }
 
@@ -616,7 +619,7 @@ impl Chats {
         Ok(())
     }
 
-    // Delete a conversation.  Itis an error if the conversation does not exist
+    // Delete a conversation.  It is an error if the conversation does not exist
     fn delete_conversation(&mut self, key: usize) -> Result<(), JsValue> {
         self.conversations.remove(&key).ok_or(format!(
             "Chats::delete conversation: Key {key} does not exist"
@@ -1120,9 +1123,6 @@ fn process_chat_response(
     // Save this to display it
     let credit = chat_response.credit;
 
-    // A new round to be added to the current conversation
-    //cas.update_current_conversation(chat_response)?;
-
     let document = window()
         .and_then(|win| win.document())
         .expect("Failed to get document");
@@ -1137,7 +1137,7 @@ fn process_chat_response(
         Ok(mut cas) => {
             // Update credit and expiry
 
-	    let expire = chat_response.expire;
+            let expire = chat_response.expire;
             document
                 .body()
                 .as_mut()
@@ -1145,7 +1145,7 @@ fn process_chat_response(
                 .set_attribute("data.expiry", expire.to_rfc3339().as_str())
                 .unwrap();
 
-	    cas.credit = credit;
+            cas.credit = credit;
             cas.update_conversation(chat_response, conversation_key)?;
             if let Some(cc) = cas.current_conversation {
                 // There is a current conversation

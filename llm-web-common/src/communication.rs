@@ -1,12 +1,10 @@
-// use llm_rs;
-/// Structures to send back and forth between llm-web-fe and llm-web-be utilises
-//use rsa::RsaPublicKey;
+/// Structures to send back and forth between llm-web-fe and llm-web-be
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
-//use uuid::serde;
 use uuid::Uuid;
+
 /// The communication between the front end and the back end uses
 /// `Message` struct.  `CommType` categorises the communication and
 /// defines what object is being relayed in the `Message.object` type
@@ -21,8 +19,9 @@ pub enum CommType {
     InvalidRequest,
 }
 
-/// The message as sent: `comm_type` says what type it is, the String
-/// is encoded JSON of the object itself.
+/// The message as sent between the front and back ends. `comm_type`
+/// says what type it is, the String is encoded JSON of the object
+/// itself.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Message {
     pub comm_type: CommType,
@@ -89,7 +88,7 @@ pub struct ChatPrompt {
     /// The model to use
     pub model: String,
 
-    // The
+    //
     pub messages: Vec<LLMMessage>,
 
     pub temperature: f64,
@@ -111,7 +110,6 @@ pub struct ExtraInfo {
 /// From llm-web-be -> llm-web-fe.  Response from LLM
 /// Has to send back all the information the front end needs
 pub struct ChatResponse {
-
     // The next expiry time.  Updated each chat
     pub expire: DateTime<Utc>,
 

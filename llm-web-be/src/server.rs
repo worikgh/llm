@@ -113,21 +113,20 @@ impl AppBackend {
     fn valid_session(&self, token: &str) -> bool {
         match self.sessions.lock().unwrap().get_mut(token) {
             Some(session) => {
-
                 if session.token.as_str() == token {
-		    if session.expire > Utc::now(){
-			// Valid session and has not expired.  Reset
-			// expiry and return true
-			session.set_expire(next_expire());			
-			true
-		    }else{
-			// Session has expired
-			false
-		    }
-		}else{
-		    // No session
-		    false
-		}
+                    if session.expire > Utc::now() {
+                        // Valid session and has not expired.  Reset
+                        // expiry and return true
+                        session.set_expire(next_expire());
+                        true
+                    } else {
+                        // Session has expired
+                        false
+                    }
+                } else {
+                    // No session
+                    false
+                }
             }
             None => false,
         }
@@ -244,16 +243,16 @@ impl AppBackend {
                 serde_json::from_str(&message.object).expect("Should be a ChatPrompt");
             let token = prompt.token.clone();
             {
-		// Must verify the request
-		if !self.valid_session(prompt.token.as_str()) {
+                // Must verify the request
+                if !self.valid_session(prompt.token.as_str()) {
                     let chat_response = InvalidRequest {
-			reason: "Invalid session".to_string(),
+                        reason: "Invalid session".to_string(),
                     };
                     return Message {
-			comm_type: CommType::InvalidRequest,
-			object: serde_json::to_string(&chat_response).unwrap(),
+                        comm_type: CommType::InvalidRequest,
+                        object: serde_json::to_string(&chat_response).unwrap(),
                     };
-		}
+                }
             }
 
             // Now processing a chat_request for a validated session
