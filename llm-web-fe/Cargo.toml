@@ -30,6 +30,7 @@ features = [
 'Element',
 'EventTarget',
 'HtmlButtonElement',
+'HtmlDivElement',
 'HtmlElement',
 'HtmlImageElement',
 'HtmlInputElement',

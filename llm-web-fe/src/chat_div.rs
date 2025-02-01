@@ -34,8 +34,8 @@ use web_sys::{Event, XmlHttpRequest};
 use std::panic;
 use wasm_bindgen::prelude::*;
 use web_sys::{
-    window, Document, Element, HtmlButtonElement, HtmlImageElement, HtmlInputElement,
-    HtmlLabelElement, HtmlSpanElement, HtmlTextAreaElement,
+    window, Document, Element, HtmlButtonElement, HtmlDivElement, HtmlImageElement,
+    HtmlInputElement, HtmlLabelElement, HtmlSpanElement, HtmlTextAreaElement,
 };
 
 /// Hold the code for creating and manipulating the chat_div
@@ -1217,6 +1217,18 @@ fn update_response_screen(
 /// Marshal a message to send to LLM
 fn send_prompt(prompt: String, chats: Rc<RefCell<Chats>>) -> Result<(), JsValue> {
     let document = get_doc();
+    let pbc: String = if document
+        .get_element_by_id("pbc_checkbox")
+        .expect("Element pbc_checkbox cannot be found")
+        .dyn_into::<HtmlInputElement>()
+        .map_err(|err| format!("Error casting to HtmlInputElement: {:?}", err))?
+        .checked()
+    {
+        " Please be concise.".to_string()
+    } else {
+        "".to_string()
+    };
+    let prompt = format!("{prompt}{pbc}");
     // The history or the chat so far, plus latest prompt
     let messages: Vec<LLMMessage> = build_messages(chats.clone(), prompt.clone());
     // The model to use
@@ -1462,6 +1474,22 @@ fn get_selected_model(document: &Document) -> Result<String, JsValue> {
 fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Element, JsValue> {
     // The side_panel menu
 
+    // The "Please be concise" checkbox state
+    let pbc_checked =
+    match document.get_element_by_id("pbc_checkbox") {
+        Some(e) => {
+            if e.dyn_into::<HtmlInputElement>()
+                .map_err(|err| format!("Error casting to HtmlInputElement: {:?}", err))?
+                .checked()
+            {
+                true
+            } else {
+                false
+            }
+        }
+        None => false,
+    };
+
     let side_panel_div = document
         .create_element("div")
         .expect("Could not create DIV element");
@@ -1580,6 +1608,42 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
         }
     }
 
+    // Add the "Please be concise" checkbox
+    let pbc_div = document
+        .create_element("div")
+        .map_err(|err| format!("Error creating input element: {:?}", err))?
+        .dyn_into::<HtmlDivElement>()
+        .map_err(|err| format!("Error casting to HtmlInputElement: {:?}", err))?;
+    {
+        pbc_div.set_id("pbc_div");
+        let pbc_chbx = document
+            .create_element("input")
+            .map_err(|err| format!("Error creating input element: {:?}", err))?
+            .dyn_into::<HtmlInputElement>()
+            .map_err(|err| format!("Error casting to HtmlInputElement: {:?}", err))?;
+        pbc_chbx.set_type("checkbox");
+        pbc_chbx.set_checked(pbc_checked);
+        let label = document
+            .create_element("label")
+            .map_err(|err| format!("Error creating label element: {:?}", err))?
+            .dyn_into::<HtmlLabelElement>()
+            .map_err(|err| format!("Error casting to HtmlLabelElement: {:?}", err))?;
+
+        // Set the text content for the label
+        label.set_inner_html("Please be concise");
+
+        // Set an ID for the checkbox so that it can be associated with the label
+        pbc_chbx.set_id("pbc_checkbox");
+
+        // Set the "for" attribute to associate the label with the checkbox
+        label
+            .set_attribute("for", &pbc_chbx.id())
+            .map_err(|err| format!("Error setting for attribute: {:?}", err))?;
+        pbc_div.append_child(&label)?;
+
+        pbc_div.append_child(&pbc_chbx)?;
+    }
+    side_panel_div.append_child(&pbc_div)?;
     Ok(side_panel_div)
 }
 
