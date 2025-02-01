@@ -195,6 +195,12 @@ impl LlmWebPage for ChatDiv {
 
         add_css_rules(
             document,
+            "#conversation_list_div",
+            &[("overflow", "scroll")],
+        )?;
+
+        add_css_rules(
+            document,
             "#model_selection_tool",
             &[("flex-direction", "column"), ("margin-bottom", "10px")],
         )?;
@@ -1585,7 +1591,7 @@ fn make_conversation_list(
     // print_to_console("make_conversation_list 1");
 
     let conversation_list_div = document.create_element("div")?;
-
+    conversation_list_div.set_id("conversation_list_div");
     // Collect the data to build the display widgets (<li>...</li>)
     // for the conversations
     struct DisplayData {
