@@ -172,19 +172,18 @@ impl LlmWebPage for ChatDiv {
         let response_h = row - prompt_h;
         let response_w = main_w;
 
-        // // Inject the style into the DOM.
-        // clear_css(document)?;
+        // Inject the style into the DOM.
         add_css_rules(
             document,
             "#model_selection_tool",
             &[
+		("flex-direction", "column"), ("margin-bottom", "10px"),
+                ("background", "#f3f8f8"),
                 ("border", ".5em solid #b05454"),
                 ("border-radius", ".2em"),
                 ("display", "flex"),
-                ("background", "#f3f8f8"),
-                ("width", "max-content"),
                 ("padding", ".3em"),
-                // ("margin", ".2em"),
+                ("width", "max-content"),
             ],
         )?;
         add_css_rules(
@@ -197,12 +196,6 @@ impl LlmWebPage for ChatDiv {
             document,
             "#conversation_list_div",
             &[("overflow", "scroll")],
-        )?;
-
-        add_css_rules(
-            document,
-            "#model_selection_tool",
-            &[("flex-direction", "column"), ("margin-bottom", "10px")],
         )?;
 
         add_css_rules(
@@ -1597,7 +1590,7 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
             };
 
             {
-                let h = ("oai_ms", format_with_commas(oai_ms as i64));
+                let h = ("Processing Time", format_with_commas(oai_ms as i64));
                 let e = row_closure(h.0, h.1.as_str())?;
                 headers_tab.append_child(&e)?;
             }
