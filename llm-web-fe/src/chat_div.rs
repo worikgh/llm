@@ -38,6 +38,13 @@ use web_sys::{
     HtmlInputElement, HtmlLabelElement, HtmlSpanElement, HtmlTextAreaElement,
 };
 
+/// The model names
+const GPT_3:&str = "gpt-3.5-turbo";
+const GPT_4:&str = "gpt-4";
+const GPT_4_0_MINI:&str = "gpt-4o-mini";
+const O1_PREVIEW:&str = "o1-preview";
+const O1_MINI:&str = "o1-mini";
+
 /// Hold the code for creating and manipulating the chat_div
 #[derive(Debug, Deserialize)]
 pub struct ChatDiv;
@@ -120,7 +127,7 @@ impl LlmWebPage for ChatDiv {
         prompt_div.append_child(&multi_line_button)?;
 
         let side_panel_div = make_side_panel(document, chats.clone())?;
-        set_selected_model("gpt-4o-mini", &side_panel_div)?;
+        set_selected_model(GPT_4_0_MINI, &side_panel_div)?;
 
         // Put the page together
         chat_div.append_child(&conversation_div)?;
@@ -1394,13 +1401,13 @@ fn make_model_selection_tool(document: &Document) -> Result<Element, JsValue> {
         .map_err(|err| format!("Error casting to HtmlImageElement: {:?}", err))?;
     select_element.set_id("model_chat");
     let models = [
-        "gpt-3.5-turbo",
-        "gpt-4",
-        "gpt-4o-mini",
-        "o1-preview",
-        "o1-mini",
+        GPT_3,
+        GPT_4,
+        GPT_4_0_MINI,
+        O1_PREVIEW,
+        O1_MINI,
     ];
-    let names = ["Gpt-3", "Gpt-4", "Gpt-4 Mini", "o1-preview", "o1-mini"];
+    let names = [GPT_3, GPT_4, GPT_4_0_MINI, O1_PREVIEW, O1_MINI];
     let options = models
         .iter()
         .zip(names.iter())
