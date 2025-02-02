@@ -463,14 +463,14 @@ impl AppBackend {
     fn cost(usage: Usage, model: &str) -> f64 {
         // GPT-4 is more expensive
         if model.starts_with("gpt-4o") {
-            usage.completion_tokens as f64 * 1500_f64 / 1_000_000_f64
-                + usage.prompt_tokens as f64 * 500_f64 / 1_000_000_f64
+            usage.completion_tokens as f64 * 1000_f64 / 1_000_000_f64
+                + usage.prompt_tokens as f64 * 250_f64 / 1_000_000_f64
         } else if model.starts_with("gpt-4") {
             usage.completion_tokens as f64 * 6000_f64 / 1_000_000_f64
                 + usage.prompt_tokens as f64 * 3000_f64 / 1_000_000_f64
         } else if model.starts_with("gpt-3") {
-            usage.completion_tokens as f64 * 600_f64 / 1_000_000_f64
-                + usage.prompt_tokens as f64 * 300_f64 / 1_000_000_f64
+            usage.completion_tokens as f64 * 500_f64 / 1_000_000_f64
+                + usage.prompt_tokens as f64 * 150_f64 / 1_000_000_f64
         } else {
             panic!("{}", model);
         }
