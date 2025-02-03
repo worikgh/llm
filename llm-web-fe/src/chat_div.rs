@@ -1,4 +1,5 @@
 //! The code that drives the "chat" interface
+use crate::create_element::create_div;
 use crate::filters;
 use crate::filters::text_for_html;
 use crate::llm_webpage::LlmWebPage;
@@ -39,11 +40,11 @@ use web_sys::{
 };
 
 /// The model names
-const GPT_3:&str = "gpt-3.5-turbo";
-const GPT_4:&str = "gpt-4";
-const GPT_4_0_MINI:&str = "gpt-4o-mini";
-const O1_PREVIEW:&str = "o1-preview";
-const O1_MINI:&str = "o1-mini";
+const GPT_3: &str = "gpt-3.5-turbo";
+const GPT_4: &str = "gpt-4";
+const GPT_4_0_MINI: &str = "gpt-4o-mini";
+const O1_PREVIEW: &str = "o1-preview";
+const O1_MINI: &str = "o1-mini";
 
 /// Hold the code for creating and manipulating the chat_div
 #[derive(Debug, Deserialize)]
@@ -51,29 +52,19 @@ pub struct ChatDiv;
 
 impl LlmWebPage for ChatDiv {
     /// Screen for the `chat` model interface
-    fn initialise_page(document: &Document) -> Result<Element, JsValue> {
+    fn initialise_page(document: &Document) -> Result<HtmlDivElement, JsValue> {
         // Manage state of the conversations with the LLM
         let chats = Rc::new(RefCell::new(Chats::new()?));
 
         // The container DIV that arranges the page
-        let chat_div = document
-            .create_element("div")
-            .expect("Could not create DIV element");
-
-        chat_div.set_id("chat_div");
+        let chat_div = create_div(document, Some("chat_div"))?;
         chat_div.set_class_name("grid-container");
 
         // The conversation with the LLM
-        let conversation_div = document
-            .create_element("div")
-            .expect("Could not create DIV element");
-        conversation_div.set_id("response_div");
+        let conversation_div = create_div(document, Some("response_div"))?;
 
         // The entry for the prompt
-        let prompt_div = document
-            .create_element("div")
-            .expect("Could not create DIV element");
-        prompt_div.set_id("prompt_div");
+        let prompt_div = create_div(document, Some("prompt_div"))?;
         let prompt_inp: HtmlInputElement = document
             .create_element("input")
             .map_err(|err| format!("Error creating input element: {:?}", err))?
@@ -184,7 +175,8 @@ impl LlmWebPage for ChatDiv {
             document,
             "#model_selection_tool",
             &[
-		("flex-direction", "column"), ("margin-bottom", "10px"),
+                ("flex-direction", "column"),
+                ("margin-bottom", "10px"),
                 ("background", "#f3f8f8"),
                 ("border", ".5em solid #b05454"),
                 ("border-radius", ".2em"),
@@ -467,8 +459,7 @@ impl Conversation {
             model_span.set_inner_html(model);
             model_span.set_title("Model");
 
-            let meta_div = document.create_element("DIV")?;
-            meta_div.set_attribute("class", "meta_div")?;
+            let meta_div = create_div(&document, Some("meta_div"))?;
 
             let prune_button = document
                 .create_element("button")?
@@ -507,15 +498,15 @@ impl Conversation {
             meta_div.append_child(&model_span)?;
             meta_div.append_child(&prune_button)?;
 
-            let display_prompt_div = document.create_element("DIV")?;
+            let display_prompt_div = create_div(&document, None)?;
             display_prompt_div.set_attribute("class", "prompt")?;
             display_prompt_div.set_inner_html(&prompt);
 
-            let display_response_div = document.create_element("DIV")?;
+            let display_response_div = create_div(&document, None)?;
             display_response_div.set_attribute("class", "response")?;
             display_response_div.set_inner_html(&response);
 
-            let pr_div = document.create_element("DIV")?;
+            let pr_div = create_div(&document, None)?;
             pr_div.set_attribute("class", "pr_div")?;
             pr_div.append_child(&display_prompt_div)?;
             pr_div.append_child(&display_response_div)?;
@@ -706,9 +697,7 @@ impl Drop for Chats {
 fn open_multi_line_window_cl(chats: Rc<RefCell<Chats>>) {
     let closure = move || -> Result<(), JsValue> {
         let document = get_doc();
-        let multi_line_div = document.create_element("DIV")?;
-
-        multi_line_div.set_id("multi_line_div");
+        let multi_line_div = create_div( &document, Some("multi_line_div"))?;
         let multi_line_textarea: HtmlTextAreaElement = document
             .create_element("textarea")?
             .dyn_into::<HtmlTextAreaElement>()?;
@@ -1389,24 +1378,15 @@ fn remake_side_panel(chats: Rc<RefCell<Chats>>) -> Result<(), JsValue> {
 }
 
 /// The widget to select which model to use.
-fn make_model_selection_tool(document: &Document) -> Result<Element, JsValue> {
-    let result = document
-        .create_element("div")
-        .expect("Cound not create model selection tool div");
-    result.set_id("model_selection_tool");
+fn make_model_selection_tool(document: &Document) -> Result<HtmlDivElement, JsValue> {
+    let result = create_div(document, Some("model_selection_tool"))?;
     let select_element: HtmlInputElement = document
         .create_element("input")
         .map_err(|err| format!("Error creating button element: {:?}", err))?
         .dyn_into::<HtmlInputElement>()
         .map_err(|err| format!("Error casting to HtmlImageElement: {:?}", err))?;
     select_element.set_id("model_chat");
-    let models = [
-        GPT_3,
-        GPT_4,
-        GPT_4_0_MINI,
-        O1_PREVIEW,
-        O1_MINI,
-    ];
+    let models = [GPT_3, GPT_4, GPT_4_0_MINI, O1_PREVIEW, O1_MINI];
     let names = [GPT_3, GPT_4, GPT_4_0_MINI, O1_PREVIEW, O1_MINI];
     let options = models
         .iter()
@@ -1471,29 +1451,19 @@ fn get_selected_model(document: &Document) -> Result<String, JsValue> {
 }
 
 /// Create the side panel
-fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Element, JsValue> {
+fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<HtmlDivElement, JsValue> {
     // The side_panel menu
 
     // The "Please be concise" checkbox state
-    let pbc_checked =
-    match document.get_element_by_id("pbc_checkbox") {
-        Some(e) => {
-            if e.dyn_into::<HtmlInputElement>()
-                .map_err(|err| format!("Error casting to HtmlInputElement: {:?}", err))?
-                .checked()
-            {
-                true
-            } else {
-                false
-            }
-        }
+    let pbc_checked = match document.get_element_by_id("pbc_checkbox") {
+        Some(e) => e
+            .dyn_into::<HtmlInputElement>()
+            .map_err(|err| format!("Error casting to HtmlInputElement: {:?}", err))?
+            .checked(),
         None => false,
     };
 
-    let side_panel_div = document
-        .create_element("div")
-        .expect("Could not create DIV element");
-    side_panel_div.set_id("side-panel-div");
+    let side_panel_div = create_div(document, Some("side-panel-div"))?;
 
     // Create the model selection tool
     let select_element = make_model_selection_tool(document)?;
@@ -1515,8 +1485,7 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
     side_panel_div.append_child(&conversation_list)?;
 
     // Login area.  Hiddent to start with
-    let login_div = document.create_element("DIV")?;
-    login_div.set_id("side_panel_login_div");
+    let login_div = create_div(document, Some("side_panel_login_div"))?;
     let (username_input, password_input) = username_password_elements("side_panel")?;
     let user_text_submit = document.create_element("button")?;
     user_text_submit.set_id("user_text_submit");
@@ -1534,8 +1503,7 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
     side_panel_div.append_child(&login_div)?;
 
     // Get the latest headers.
-    let headers_div = document.create_element("DIV")?;
-    headers_div.set_id("side_panel_headers_div");
+    let headers_div = create_div(document, Some("side_panel_headers_div"))?;
     let headers_tab = document.create_element("table")?;
 
     // Header of the table
@@ -1609,13 +1577,8 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Ele
     }
 
     // Add the "Please be concise" checkbox
-    let pbc_div = document
-        .create_element("div")
-        .map_err(|err| format!("Error creating input element: {:?}", err))?
-        .dyn_into::<HtmlDivElement>()
-        .map_err(|err| format!("Error casting to HtmlInputElement: {:?}", err))?;
+    let pbc_div = create_div(document, Some("pbc_div"))?;
     {
-        pbc_div.set_id("pbc_div");
         let pbc_chbx = document
             .create_element("input")
             .map_err(|err| format!("Error creating input element: {:?}", err))?
@@ -1822,7 +1785,7 @@ fn build_messages(chats: Rc<RefCell<Chats>>, prompt: String) -> Vec<LLMMessage> 
     // needs to be configurable)
     result.push(LLMMessage {
         role: LLMMessageType::System,
-        content: "You are a helpful assistant".to_string(),
+        content: get_role(),
     });
 
     match chats.try_borrow_mut() {
@@ -1898,4 +1861,9 @@ fn set_model(new_model: &str) -> Result<(), JsValue> {
         .expect("Failed to get document");
     let model_selection_tool = document.get_element_by_id("model_selection_tool").unwrap();
     set_selected_model(new_model, &model_selection_tool)
+}
+
+/// Read the string the user has edited to be the "Role" statement to the model
+fn get_role() -> String {
+    "You are a helpful assistant".to_string()
 }

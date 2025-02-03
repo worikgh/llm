@@ -9,6 +9,7 @@ use crate::set_page::update_user_display;
 use crate::set_page::Pages;
 #[allow(unused_imports)]
 use crate::utility::print_to_console;
+use crate::create_element::create_div;
 use gloo_events::EventListener;
 use llm_web_common::communication::CommType;
 use llm_web_common::communication::LoginRequest;
@@ -17,18 +18,16 @@ use llm_web_common::communication::Message;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::JsValue;
 use web_sys::XmlHttpRequest;
-use web_sys::{Document, Element, HtmlInputElement};
+use web_sys::{Document, HtmlDivElement, HtmlInputElement};
 pub struct LoginDiv;
 
 impl LlmWebPage for LoginDiv {
     ///  Generate and return the login screen
-    fn initialise_page(document: &Document) -> Result<Element, JsValue> {
-        let login_main_div = document.create_element("div")?;
-        login_main_div.set_id("login-main-div");
+    fn initialise_page(document: &Document) -> Result<HtmlDivElement, JsValue> {
+        let login_main_div = create_div(document, Some("login-main-div"))?;
 
-        let login_fields_div = document.create_element("div")?;
+        let login_fields_div = create_div(document, Some("login-fields-div"))?;
         login_fields_div.set_class_name("grid-item");
-        login_fields_div.set_id("login-fields-div");
 
         // Username and pasword elements
         let (username_input, password_input) = username_password_elements("login_div")?;
