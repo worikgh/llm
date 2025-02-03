@@ -1,5 +1,5 @@
 //! The code that drives the "chat" interface
-use crate::create_element::create_div;
+use crate::elements::create_div;
 use crate::filters;
 use crate::filters::text_for_html;
 use crate::llm_webpage::LlmWebPage;

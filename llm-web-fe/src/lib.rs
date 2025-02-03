@@ -8,7 +8,7 @@ use std::panic;
 use wasm_bindgen::prelude::*;
 mod chat_div;
 mod cost_div;
-mod create_element;
+mod elements;
 mod filters;
 mod llm_webpage;
 mod login_div;
