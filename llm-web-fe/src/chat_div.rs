@@ -697,7 +697,7 @@ impl Drop for Chats {
 fn open_multi_line_window_cl(chats: Rc<RefCell<Chats>>) {
     let closure = move || -> Result<(), JsValue> {
         let document = get_doc();
-        let multi_line_div = create_div( &document, Some("multi_line_div"))?;
+        let multi_line_div = create_div(&document, Some("multi_line_div"))?;
         let multi_line_textarea: HtmlTextAreaElement = document
             .create_element("textarea")?
             .dyn_into::<HtmlTextAreaElement>()?;
@@ -1451,7 +1451,10 @@ fn get_selected_model(document: &Document) -> Result<String, JsValue> {
 }
 
 /// Create the side panel
-fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<HtmlDivElement, JsValue> {
+fn make_side_panel(
+    document: &Document,
+    chats: Rc<RefCell<Chats>>,
+) -> Result<HtmlDivElement, JsValue> {
     // The side_panel menu
 
     // The "Please be concise" checkbox state
@@ -1607,6 +1610,39 @@ fn make_side_panel(document: &Document, chats: Rc<RefCell<Chats>>) -> Result<Htm
         pbc_div.append_child(&pbc_chbx)?;
     }
     side_panel_div.append_child(&pbc_div)?;
+    // The string to send as a "Role".  This is where the user can
+    // edit it
+    let role_div = create_div(document, Some("role_div"))?;
+    {
+        let role_input = document
+            .create_element("input")
+            .map_err(|err| format!("Error creating input element: {:?}", err))?
+            .dyn_into::<HtmlInputElement>()
+            .map_err(|err| format!("Error casting to HtmlInputElement: {:?}", err))?;
+        let main_body = document.document_element().unwrap();
+        if let Some(role) = main_body.get_attribute("data-role") {
+            role_input.set_value(&role);
+        }
+
+        // Set the event handler
+        // Wrap role_input in Rc for borrowing
+        let role_input = Rc::new(role_input);
+        let closure = {
+            let role_input = Rc::clone(&role_input);
+            let document = document.clone();
+            Closure::wrap(Box::new(move |_event: web_sys::Event| {
+                let value = role_input.value();
+                let data_role = document.document_element().unwrap();
+                print_to_console(format!("data-role -> {value}"));
+                data_role.set_attribute("data-role", &value).unwrap();
+            }) as Box<dyn FnMut(_)>)
+        };
+
+        role_input.set_oninput(Some(closure.as_ref().unchecked_ref()));
+        closure.forget();
+        role_div.append_child(&role_input)?;
+    }
+    side_panel_div.append_child(&role_div)?;
     Ok(side_panel_div)
 }
 
@@ -1865,5 +1901,13 @@ fn set_model(new_model: &str) -> Result<(), JsValue> {
 
 /// Read the string the user has edited to be the "Role" statement to the model
 fn get_role() -> String {
+    let document = window()
+        .and_then(|win| win.document())
+        .expect("Failed to get document");
+    if let Some(main_body) = document.document_element() {
+        if let Some(self_str) = main_body.get_attribute("data-role") {
+            return self_str;
+        }
+    };
     "You are a helpful assistant".to_string()
 }

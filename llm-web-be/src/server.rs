@@ -321,7 +321,7 @@ impl AppBackend {
                 let session_ref = (*session_ref).get_mut(token.as_str()).unwrap();
 
                 eprint!(
-                    "Process chat request: Cost: {cost} and Credit: {:0.4} ",
+                    "Process chat request {message}: Cost: {cost} and Credit: {:0.4} ",
                     session_ref.credit
                 );
                 session_ref.credit -= cost;

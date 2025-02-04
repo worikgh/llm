@@ -1,3 +1,4 @@
+use crate::elements::create_div;
 use crate::llm_webpage::LlmWebPage;
 use crate::make_request::make_request;
 use crate::manipulate_css::add_css_rules;
@@ -9,7 +10,6 @@ use crate::set_page::update_user_display;
 use crate::set_page::Pages;
 #[allow(unused_imports)]
 use crate::utility::print_to_console;
-use crate::elements::create_div;
 use gloo_events::EventListener;
 use llm_web_common::communication::CommType;
 use llm_web_common::communication::LoginRequest;
