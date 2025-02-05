@@ -181,12 +181,11 @@ fn add_css_rule(
         .get(selector.as_str())
     {
         // The selector is registered
-
         if let Some(v) = rules.get(property.as_str()) {
             // The property declared for this rule
             if v == &value {
                 // Rule already there
-                return Ok(());
+		return Ok(());
             } else {
                 // Rule exists with a different value
                 panic!("{selector}/{property} has value: {v}.  We want to set: {value}",);

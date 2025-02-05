@@ -40,11 +40,11 @@ use web_sys::{
 };
 
 /// The model names
-const GPT_3: &str = "gpt-3.5-turbo";
-const GPT_4: &str = "gpt-4";
-const GPT_4_0_MINI: &str = "gpt-4o-mini";
-const O1_PREVIEW: &str = "o1-preview";
-const O1_MINI: &str = "o1-mini";
+const GPT_3: (&str, &str) = ("gpt-3.5-turbo", "GPT-3.5");
+const GPT_4: (&str, &str) = ("gpt-4", "GPT-4");
+const GPT_4_0_MINI:  (&str, &str) = ("gpt-4o-mini", "GPT-4o mini");
+const O1_PREVIEW:  (&str, &str) = ("o1-preview", "o1-preview");
+const O1_MINI:  (&str, &str) = ("o1-mini", "o1-mini");
 
 /// Hold the code for creating and manipulating the chat_div
 #[derive(Debug, Deserialize)]
@@ -118,7 +118,7 @@ impl LlmWebPage for ChatDiv {
         prompt_div.append_child(&multi_line_button)?;
 
         let side_panel_div = make_side_panel(document, chats.clone())?;
-        set_selected_model(GPT_4_0_MINI, &side_panel_div)?;
+        set_selected_model(GPT_4_0_MINI.0, &side_panel_div)?;
 
         // Put the page together
         chat_div.append_child(&conversation_div)?;
@@ -376,7 +376,7 @@ impl LlmWebPage for ChatDiv {
         add_css_rules(document, "ul", &[("list-style", "none")])?;
         add_css_rules(
             document,
-            ".meta_div",
+            "#meta_div",
             &[
                 ("width", "20%"),
                 ("font-size", "small"),
@@ -967,7 +967,6 @@ fn cancel_cb(event: &Event, chats: Rc<RefCell<Chats>>) {
                     Some(cc) => match &cc.request {
                         Some(xhr) => {
                             xhr.abort().unwrap();
-                            //print_to_console(format!("cancel_cb 1.7 id: {id}"));
                             if let Some(cc) = m_chats.get_conversation_mut(&id) {
                                 cc.prompt = None;
                                 cc.request = None;
@@ -998,7 +997,6 @@ fn cancel_cb(event: &Event, chats: Rc<RefCell<Chats>>) {
 /// Callback for conversation delete button
 fn delete_conversation_cb(event: Event, chats: Rc<RefCell<Chats>>) {
     let closure = move || -> Result<(), JsValue> {
-        print_to_console("delete_conversation_cb 1");
         let target = event
             .target()
             .ok_or(format!("Failed to get target for event: {event:?}"))?;
@@ -1015,7 +1013,6 @@ fn delete_conversation_cb(event: Event, chats: Rc<RefCell<Chats>>) {
                 "Cannot parse {id} setting up delete conversation button: Error: {err}"
             )),
             Ok(key) => {
-                print_to_console("delete_conversation_cb 1.1  Got key");
                 // `key` is the conversation to delete
                 match chats.try_borrow_mut() {
                     Err(_err) => {
@@ -1032,10 +1029,8 @@ fn delete_conversation_cb(event: Event, chats: Rc<RefCell<Chats>>) {
                         chats_mut.delete_conversation(key)?;
                     }
                 };
-                print_to_console("delete_conversation_cb 1.2");
 
                 remake_side_panel(chats.clone())?;
-                print_to_console("delete_conversation_cb 2");
             }
         };
         Ok(())
@@ -1048,7 +1043,6 @@ fn delete_conversation_cb(event: Event, chats: Rc<RefCell<Chats>>) {
 
 /// The callback for the submit button to send a prompt to the model.
 fn chat_submit_cb(chats: Rc<RefCell<Chats>>) {
-    // print_to_console("chat_submit 1");
     // Get the contents of the prompt
     let closure = move || -> Result<(), JsValue> {
         let document = window()
@@ -1098,7 +1092,6 @@ fn process_chat_response(
     chats: Rc<RefCell<Chats>>,
     conversation_key: usize,
 ) -> Result<(), JsValue> {
-    // print_to_console(format!("process_chat_request 1: {chat_response:?}"));
     // Check if conversation has been deleted while the LLM was working
     if !match chats.try_borrow() {
         Ok(chats_ref) => chats_ref.conversation_exists(conversation_key),
@@ -1178,7 +1171,6 @@ fn update_response_screen(
     conversation: &Conversation,
     chats: Rc<RefCell<Chats>>,
 ) -> Result<(), JsValue> {
-    //print_to_console("update_response_screen 1");
     let document = get_doc();
 
     let response_div = document
@@ -1199,7 +1191,6 @@ fn update_response_screen(
 
     // Scroll to the bottom
     response_div.set_scroll_top(response_div.scroll_height());
-    // print_to_console("update_response_screen 2");
     Ok(())
 }
 
@@ -1313,7 +1304,6 @@ fn enable_prompt_div() -> Result<(), JsValue> {
 /// conversation is active the #prompt_input has the active prompt in
 /// it, the whole thing is greyed out and inactive.
 fn prompt_div_active_query(prompt: &str) -> Result<(), JsValue> {
-    // print_to_console(format!("prompt_div_active_query({prompt}) 1"));
     let document = get_doc();
     // Set the prompt in #prompt_input
     let prompt_input = document
@@ -1386,8 +1376,8 @@ fn make_model_selection_tool(document: &Document) -> Result<HtmlDivElement, JsVa
         .dyn_into::<HtmlInputElement>()
         .map_err(|err| format!("Error casting to HtmlImageElement: {:?}", err))?;
     select_element.set_id("model_chat");
-    let models = [GPT_3, GPT_4, GPT_4_0_MINI, O1_PREVIEW, O1_MINI];
-    let names = [GPT_3, GPT_4, GPT_4_0_MINI, O1_PREVIEW, O1_MINI];
+    let models = [GPT_3.0, GPT_4.0, GPT_4_0_MINI.0, O1_PREVIEW.0, O1_MINI.0,];
+    let names = [GPT_3.1, GPT_4.1, GPT_4_0_MINI.1, O1_PREVIEW.1, O1_MINI.1,];
     let options = models
         .iter()
         .zip(names.iter())
@@ -1633,7 +1623,6 @@ fn make_side_panel(
             Closure::wrap(Box::new(move |_event: web_sys::Event| {
                 let value = role_input.value();
                 let data_role = document.document_element().unwrap();
-                print_to_console(format!("data-role -> {value}"));
                 data_role.set_attribute("data-role", &value).unwrap();
             }) as Box<dyn FnMut(_)>)
         };
@@ -1651,7 +1640,6 @@ fn make_conversation_list(
     document: &Document,
     chats: Rc<RefCell<Chats>>,
 ) -> Result<Element, JsValue> {
-    // print_to_console("make_conversation_list 1");
 
     let conversation_list_div = document.create_element("div")?;
     conversation_list_div.set_id("conversation_list_div");
@@ -1794,7 +1782,7 @@ fn make_conversation_list(
                 cancel_cb(&_event, chats_clone.clone());
                 if let Err(err) = remake_side_panel(chats_clone.clone()) {
                     print_to_console(format!(
-                        "Fail rmake side panel canceling conversation.  Err: {err:?}"
+                        "Fail remake side panel canceling conversation.  Err: {err:?}"
                     ));
                     panic![];
                 }
